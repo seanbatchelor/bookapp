@@ -1,23 +1,38 @@
 # Book Playground App
 
-A simple React Native book library app built with Expo, featuring local data persistence.
+An interactive book-tracking prototype built with Expo, React Native, and NativeWind. Features intelligent book lookup simulation and state-driven UI interactions.
 
 ## Tech Stack
 
-- **Expo** - React Native framework
-- **React Navigation** - Navigation between screens
-- **React Native StyleSheet** - Native styling (clean, minimal design)
-- **AsyncStorage** - Local data persistence
+- **Expo SDK 54** - React Native framework
+- **React Navigation** - Stack-based navigation
+- **NativeWind v4** - Tailwind CSS for React Native
+- **React Context** - State management
 - **TypeScript** - Type safety
 
 ## Features
 
-- ✅ View your book library in a clean list
-- ✅ Add new books with a simple form
-- ✅ Data persists between app sessions using AsyncStorage
-- ✅ Minimal, modern UI with clean styling
-- ✅ Floating action button for adding books
-- ✅ Navigation between Library and Add Book screens
+### Core Functionality
+- **Smart Book Lookup** - Mocked search simulating Google Books API
+- **8 Item States** - EMPTY, ACTIVE, SUBMITTED, SEARCHING, FOUND, OPTIONS_FOUND, NO_OPTIONS_FOUND, READ
+- **Interactive List** - Add books with floating action button
+- **Automatic Reordering** - Read books move to separate section
+- **Detail Views** - Context-aware screens based on item state
+- **Delete with Confirmation** - Modal confirmation before deletion
+
+### State Transitions
+1. **Add Book** → Creates EMPTY item, auto-focuses input
+2. **Type Query** → Transitions to ACTIVE state
+3. **Submit** → SUBMITTED → SEARCHING (800ms) → Result state
+4. **Found Book** → Tap to view details, checkbox to mark as READ
+5. **Multiple Options** → Tap to choose from list
+6. **No Results** → Tap to retry with different query
+
+### UI Design
+- Minimal notepad aesthetic using spacing and rules
+- NativeWind/Tailwind CSS styling throughout
+- Clean state indicators (colors, icons, loading states)
+- Responsive touch interactions
 
 ## Getting Started
 
@@ -57,30 +72,48 @@ npm install
 
 ### Usage
 
-1. **Library Screen** (default):
-   - View all your saved books
-   - Tap the **+** button (bottom right) to add a new book
+1. **Home Screen**:
+   - View your reading list with "To Read" and "Read" sections
+   - Tap **+** button to add a new book
+   - Type a book title and press enter/search
 
-2. **Add Book Screen**:
-   - Enter a book title
-   - Tap **Save** to add it to your library
-   - Tap **Cancel** to go back without saving
+2. **Testing the Mock Lookup**:
+   - Try "Ulysses" → Single match (James Joyce)
+   - Try "poem" → Multiple matches (Celan, Glück)
+   - Try "Gatsby" → Single match (F. Scott Fitzgerald)
+   - Try "Harry" → Multiple matches (Harry Potter series)
+   - Try anything else → No matches
 
-3. **Data Persistence**:
-   - All books are automatically saved to AsyncStorage
-   - Your library persists even after closing the app
+3. **Item Interactions**:
+   - **FOUND state**: Tap to view details, check to mark as READ
+   - **OPTIONS_FOUND**: Tap to choose from multiple matches
+   - **NO_OPTIONS_FOUND**: Tap to retry with different query
+   - **READ state**: Automatically moves to "Read" section
+
+4. **Item Screen**:
+   - View book details (title, author, original query)
+   - Select from multiple options when available
+   - Retry search with different query if no results
+   - Delete button with confirmation modal
 
 ## Project Structure
 
 ```
 book-playground/
 ├── src/
+│   ├── components/
+│   │   └── BookItemRow.tsx      # Book list item with state rendering
+│   ├── context/
+│   │   └── BooksContext.tsx     # React Context for state management
 │   ├── screens/
-│   │   ├── LibraryScreen.tsx    # Main library view with book list
-│   │   └── AddBookScreen.tsx    # Form to add new books
-│   └── types/
-│       └── navigation.ts        # TypeScript navigation types
-├── App.tsx                      # Main app with navigation setup
+│   │   ├── HomeScreen.tsx       # Main reading list with sections
+│   │   └── ItemScreen.tsx       # Detail/options/retry views
+│   ├── types/
+│   │   ├── book.ts              # Book item and state types
+│   │   └── navigation.ts        # Navigation types
+│   └── utils/
+│       └── mockLookup.ts        # Mocked book search function
+├── App.tsx                      # Main app with navigation & provider
 ├── global.css                   # Tailwind CSS imports
 ├── tailwind.config.js           # Tailwind configuration
 ├── babel.config.js              # Babel config for NativeWind
@@ -98,23 +131,44 @@ book-playground/
 
 ### App won't load on Expo Go
 - Make sure your phone and computer are on the same WiFi network
-- Try restarting the Expo development server
+- Try restarting the Expo development server: `npm start -- --clear`
 - Clear the Expo Go app cache
 
-### Styles not applying
-- Make sure you've run `npm start` to rebuild after any config changes
-- Try clearing the Metro bundler cache: `npm start -- --clear`
+### NativeWind styles not applying
+- Restart with cache clearing: `npm start -- --clear`
+- Check that `global.css` is imported in `App.tsx`
+- Verify `babel.config.js` includes `nativewind/babel` plugin
 
-### Books not persisting
-- Check the console logs for AsyncStorage errors
-- Make sure you're testing on a real device or simulator (not web)
+### TypeScript errors
+- Run `npx tsc --noEmit` to check for type errors
+- Ensure `nativewind-env.d.ts` exists for className prop support
 
-## Next Steps
+## Implementation Notes
 
-Some ideas to extend this app:
-- Add book authors, descriptions, and cover images
-- Implement search and filtering
-- Add categories or tags
-- Include reading status (to-read, reading, finished)
-- Add a detail view for each book
-- Implement swipe-to-delete functionality
+### State Management
+- Uses React Context for global state (no persistence)
+- All state transitions handled in `BooksContext.tsx`
+- Clean separation between UI and business logic
+
+### Mock Lookup
+- 800ms delay simulates network request
+- Pattern matching on query string (case-insensitive)
+- Returns single match, multiple options, or no results
+
+### Design Decisions
+- Minimal UI with light notepad metaphor
+- Section headers separate unread/read books
+- Auto-focus on new items for quick entry
+- Inline state indicators (colors, loading, messages)
+- Modal confirmation for destructive actions
+
+## Future Enhancements
+
+Potential additions:
+- Real Google Books API integration
+- Local persistence with AsyncStorage
+- Book cover images
+- Reading progress tracking
+- Notes and highlights
+- Export/import functionality
+- Search and filter within list

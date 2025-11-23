@@ -1,4 +1,4 @@
 export type RootStackParamList = {
-  Library: undefined;
-  AddBook: undefined;
+  Home: undefined;
+  Item: { bookId: string };
 };
