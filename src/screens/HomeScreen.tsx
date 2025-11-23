@@ -3,7 +3,7 @@ import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { useBooks } from '../context/BooksContext';
-import { BookItemRow } from '../components/BookItemRow';
+import { SwipeableBookItem } from '../components/SwipeableBookItem';
 import { BookItem } from '../types/book';
 
 type HomeScreenProps = {
@@ -58,7 +58,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         </View>
       );
     }
-    return <BookItemRow item={item.data} onPress={() => handleItemPress(item.data)} />;
+    return <SwipeableBookItem item={item.data} onPress={() => handleItemPress(item.data)} />;
   };
 
   return (
