@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, Animated, LayoutChangeEvent } from 'react-native';
+import { View, Text, Animated, Easing, LayoutChangeEvent } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import ReanimatedSwipeable, { SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { BookItem } from '../types/book';
 import { BookItemRow } from './BookItemRow';
@@ -28,7 +29,8 @@ export const SwipeableBookItem = ({ item, onPress }: SwipeableBookItemProps) => 
     if (!isDeleting) return;
     Animated.timing(heightAnim, {
       toValue: 0,
-      duration: 250,
+      duration: 300,
+      easing: Easing.out(Easing.exp),
       useNativeDriver: false,
     }).start(() => {
       deleteBook(item.id);
@@ -36,6 +38,7 @@ export const SwipeableBookItem = ({ item, onPress }: SwipeableBookItemProps) => 
   }, [isDeleting]);
 
   const handleDelete = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     heightAnim.setValue(rowHeight.current);
     setIsDeleting(true);
   };
