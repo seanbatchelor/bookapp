@@ -13,7 +13,7 @@ type ItemScreenProps = {
 
 export default function ItemScreen({ navigation, route }: ItemScreenProps) {
   const { bookId } = route.params;
-  const { books, selectOption, submitBook, deleteBook, updateBookQuery } = useBooks();
+  const { books, selectOption, lookupBook, deleteBook, updateBookText } = useBooks();
   const [retryQuery, setRetryQuery] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -31,10 +31,10 @@ export default function ItemScreen({ navigation, route }: ItemScreenProps) {
 
   const handleRetrySearch = async () => {
     if (retryQuery.trim()) {
-      // Update the query in context first
-      updateBookQuery(bookId, retryQuery);
-      // Then submit
-      await submitBook(bookId);
+      // Update the text in context first
+      updateBookText(bookId, retryQuery);
+      // Then lookup
+      await lookupBook(bookId);
       navigation.goBack();
     }
   };
@@ -48,15 +48,15 @@ export default function ItemScreen({ navigation, route }: ItemScreenProps) {
   const renderFoundView = () => (
     <View className="flex-1 p-6">
       <Text className="text-3xl font-bold text-black mb-2">
-        {book.bookData?.title}
+        {book.resolvedTitle}
       </Text>
       <Text className="text-xl text-gray-600 mb-8">
-        by {book.bookData?.author}
+        by {book.resolvedAuthor}
       </Text>
       
       <View className="border-t border-gray-200 pt-6">
         <Text className="text-sm text-gray-500 mb-2">Original search</Text>
-        <Text className="text-base text-gray-700">{book.query}</Text>
+        <Text className="text-base text-gray-700">{book.originalText}</Text>
       </View>
     </View>
   );
@@ -97,7 +97,7 @@ export default function ItemScreen({ navigation, route }: ItemScreenProps) {
         No matches found
       </Text>
       <Text className="text-sm text-gray-600 mb-6">
-        We couldn't find "{book.query}". Try a different search term:
+        We couldn't find "{book.originalText}". Try a different search term:
       </Text>
 
       <TextInput
@@ -127,7 +127,7 @@ export default function ItemScreen({ navigation, route }: ItemScreenProps) {
         return renderFoundView();
       case 'OPTIONS_FOUND':
         return renderOptionsView();
-      case 'NO_OPTIONS_FOUND':
+      case 'NOT_FOUND':
         return renderNoOptionsView();
       default:
         return null;

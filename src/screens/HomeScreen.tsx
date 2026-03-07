@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { View, Text, FlatList, TouchableOpacity } from 'react-native';
+import React, { useMemo, useRef, useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, Animated, ActivityIndicator, RefreshControl } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { useBooks } from '../context/BooksContext';
@@ -10,22 +10,35 @@ type HomeScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Home'>;
 };
 
+const PULL_THRESHOLD = 80;
+const TRIGGER_THRESHOLD = 120;
+
 export default function HomeScreen({ navigation }: HomeScreenProps) {
-  const { books, addBook } = useBooks();
+  const { books, addBook, lookupAllUnsearched } = useBooks();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Separate and order books: unread first, then read
-  const { unreadBooks, readBooks } = useMemo(() => {
+  const { unreadBooks, readBooks, unsearchedCount } = useMemo(() => {
     const unread = books.filter(b => b.state !== 'READ');
     const read = books.filter(b => b.state === 'READ');
-    return { unreadBooks: unread, readBooks: read };
+    const unsearched = books.filter(b => b.state === 'UNSEARCHED').length;
+    return { unreadBooks: unread, readBooks: read, unsearchedCount: unsearched };
   }, [books]);
+
+  const handleRefresh = async () => {
+    if (unsearchedCount === 0) return;
+    
+    setIsRefreshing(true);
+    await lookupAllUnsearched();
+    setIsRefreshing(false);
+  };
 
   const handleItemPress = (item: BookItem) => {
     // Only navigate for certain states
     if (
       item.state === 'FOUND' || 
       item.state === 'OPTIONS_FOUND' || 
-      item.state === 'NO_OPTIONS_FOUND'
+      item.state === 'NOT_FOUND'
     ) {
       navigation.navigate('Item', { bookId: item.id });
     }
@@ -66,6 +79,11 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       {/* Header */}
       <View className="pt-12 pb-4 px-4 bg-white border-b border-gray-200">
         <Text className="text-black text-2xl font-bold">Reading List</Text>
+        {unsearchedCount > 0 && !isRefreshing && (
+          <Text className="text-xs text-gray-500 mt-1">
+            {unsearchedCount} item{unsearchedCount !== 1 ? 's' : ''} not looked up · Pull to search
+          </Text>
+        )}
       </View>
 
       {/* Book List */}
@@ -74,6 +92,17 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         renderItem={renderItem}
         keyExtractor={(item, index) => 
           item.type === 'header' ? `header-${item.data}` : `item-${item.data.id}`
+        }
+        refreshControl={
+          unsearchedCount > 0 ? (
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor="#3B82F6"
+              title={`Look up ${unsearchedCount} item${unsearchedCount !== 1 ? 's' : ''}`}
+              titleColor="#3B82F6"
+            />
+          ) : undefined
         }
         ListEmptyComponent={
           <View className="flex-1 justify-center items-center py-16">

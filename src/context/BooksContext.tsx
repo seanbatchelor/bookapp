@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { BookItem, BookData } from '../types/book';
-import { mockLookup } from '../utils/mockLookup';
+import { googleBooksLookup } from '../utils/googleBooksLookup';
 
 type BooksContextType = {
   books: BookItem[];
   addBook: () => void;
-  updateBookQuery: (id: string, query: string) => void;
-  submitBook: (id: string) => Promise<void>;
+  updateBookText: (id: string, text: string) => void;
+  saveBook: (id: string) => void;
+  lookupBook: (id: string) => Promise<void>;
+  lookupAllUnsearched: () => Promise<void>;
   selectOption: (id: string, book: BookData) => void;
   markAsRead: (id: string) => void;
   deleteBook: (id: string) => void;
@@ -22,54 +24,100 @@ export const BooksProvider = ({ children }: { children: ReactNode }) => {
     const newBook: BookItem = {
       id: Date.now().toString(),
       state: 'EMPTY',
-      query: '',
+      originalText: '',
     };
     setBooks(prev => [newBook, ...prev]);
   };
 
-  const updateBookQuery = (id: string, query: string) => {
+  const updateBookText = (id: string, text: string) => {
     setBooks(prev => prev.map(book => 
       book.id === id 
-        ? { ...book, query, state: query ? 'ACTIVE' : 'EMPTY' }
+        ? { ...book, originalText: text, state: text ? 'ACTIVE' : 'EMPTY' }
         : book
     ));
   };
 
-  const submitBook = async (id: string) => {
-    const book = books.find(b => b.id === id);
-    if (!book || !book.query.trim()) return;
-
-    // Set to SUBMITTED then SEARCHING
+  const saveBook = (id: string) => {
     setBooks(prev => prev.map(b => 
-      b.id === id ? { ...b, state: 'SUBMITTED' } : b
+      b.id === id && b.originalText.trim()
+        ? { ...b, state: 'UNSEARCHED' }
+        : b
+    ));
+  };
+
+  const lookupBook = async (id: string) => {
+    const book = books.find(b => b.id === id);
+    if (!book || !book.originalText.trim()) return;
+
+    // Set to SEARCHING
+    setBooks(prev => prev.map(b => 
+      b.id === id ? { ...b, state: 'SEARCHING' } : b
     ));
 
-    setTimeout(() => {
-      setBooks(prev => prev.map(b => 
-        b.id === id ? { ...b, state: 'SEARCHING' } : b
-      ));
-    }, 100);
-
     // Perform lookup
-    const result = await mockLookup(book.query);
+    const result = await googleBooksLookup(book.originalText);
 
     setBooks(prev => prev.map(b => {
       if (b.id !== id) return b;
 
       if (result.type === 'single') {
-        return { ...b, state: 'FOUND', bookData: result.book };
+        return { 
+          ...b, 
+          state: 'FOUND', 
+          resolvedTitle: result.book.title,
+          resolvedAuthor: result.book.author,
+          options: undefined
+        };
       } else if (result.type === 'multi') {
         return { ...b, state: 'OPTIONS_FOUND', options: result.options };
       } else {
-        return { ...b, state: 'NO_OPTIONS_FOUND' };
+        return { ...b, state: 'NOT_FOUND' };
       }
     }));
+  };
+
+  const lookupAllUnsearched = async () => {
+    const unsearchedBooks = books.filter(b => b.state === 'UNSEARCHED');
+    
+    // Set all to SEARCHING
+    setBooks(prev => prev.map(b => 
+      b.state === 'UNSEARCHED' ? { ...b, state: 'SEARCHING' } : b
+    ));
+
+    // Lookup each book
+    for (const book of unsearchedBooks) {
+      const result = await googleBooksLookup(book.originalText);
+      
+      setBooks(prev => prev.map(b => {
+        if (b.id !== book.id) return b;
+
+        if (result.type === 'single') {
+          return { 
+            ...b, 
+            state: 'FOUND', 
+            resolvedTitle: result.book.title,
+            resolvedAuthor: result.book.author,
+            options: undefined
+          };
+        } else if (result.type === 'multi') {
+          return { ...b, state: 'OPTIONS_FOUND', options: result.options };
+        } else {
+          return { ...b, state: 'NOT_FOUND' };
+        }
+      }));
+    }
   };
 
   const selectOption = (id: string, book: BookData) => {
     setBooks(prev => prev.map(b => 
       b.id === id 
-        ? { ...b, state: 'FOUND', bookData: book, options: undefined }
+        ? { 
+            ...b, 
+            state: 'FOUND', 
+            resolvedTitle: book.title,
+            resolvedAuthor: book.author,
+            options: undefined 
+          }
         : b
     ));
   };
@@ -94,8 +142,10 @@ export const BooksProvider = ({ children }: { children: ReactNode }) => {
     <BooksContext.Provider value={{
       books,
       addBook,
-      updateBookQuery,
-      submitBook,
+      updateBookText,
+      saveBook,
+      lookupBook,
+      lookupAllUnsearched,
       selectOption,
       markAsRead,
       deleteBook,

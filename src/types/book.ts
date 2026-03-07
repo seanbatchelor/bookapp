@@ -1,11 +1,11 @@
 export type BookState = 
   | 'EMPTY'
   | 'ACTIVE'
-  | 'SUBMITTED'
+  | 'UNSEARCHED'
   | 'SEARCHING'
   | 'FOUND'
   | 'OPTIONS_FOUND'
-  | 'NO_OPTIONS_FOUND'
+  | 'NOT_FOUND'
   | 'READ';
 
 export type BookData = {
@@ -16,8 +16,9 @@ export type BookData = {
 export type BookItem = {
   id: string;
   state: BookState;
-  query: string;
-  bookData?: BookData;
+  originalText: string;
+  resolvedTitle?: string;
+  resolvedAuthor?: string;
   options?: BookData[];
 };
 

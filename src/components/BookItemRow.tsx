@@ -9,7 +9,7 @@ type BookItemRowProps = {
 };
 
 export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
-  const { updateBookQuery, submitBook, markAsRead } = useBooks();
+  const { updateBookText, saveBook, markAsRead } = useBooks();
   const inputRef = useRef<TextInput>(null);
 
   // Auto-focus when EMPTY
@@ -39,21 +39,32 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
               className="text-base text-black py-2"
               placeholder="Enter book title..."
               placeholderTextColor="#9CA3AF"
-              value={item.query}
-              onChangeText={(text) => updateBookQuery(item.id, text)}
-              onSubmitEditing={() => submitBook(item.id)}
-              returnKeyType="search"
+              value={item.originalText}
+              onChangeText={(text) => updateBookText(item.id, text)}
+              onSubmitEditing={() => saveBook(item.id)}
+              returnKeyType="done"
             />
           </View>
         );
 
-      case 'SUBMITTED':
+      case 'UNSEARCHED':
+        return (
+          <View className="flex-1">
+            <Text className="text-base text-black">
+              {item.originalText}
+            </Text>
+            <Text className="text-xs text-gray-400 mt-1">
+              Not looked up yet
+            </Text>
+          </View>
+        );
+
       case 'SEARCHING':
         return (
           <View className="flex-1 flex-row items-center">
             <ActivityIndicator size="small" color="#000" />
             <Text className="ml-3 text-base text-gray-600">
-              Searching for "{item.query}"...
+              Searching for "{item.originalText}"...
             </Text>
           </View>
         );
@@ -62,10 +73,10 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
         return (
           <TouchableOpacity className="flex-1" onPress={onPress}>
             <Text className="text-base text-black font-medium">
-              {item.bookData?.title}
+              {item.resolvedTitle}
             </Text>
             <Text className="text-sm text-gray-600 mt-1">
-              {item.bookData?.author}
+              {item.resolvedAuthor}
             </Text>
           </TouchableOpacity>
         );
@@ -74,7 +85,7 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
         return (
           <TouchableOpacity className="flex-1" onPress={onPress}>
             <Text className="text-base text-black">
-              {item.query}
+              {item.originalText}
             </Text>
             <Text className="text-sm text-amber-600 mt-1">
               Multiple matches found · Tap to choose
@@ -82,11 +93,11 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
           </TouchableOpacity>
         );
 
-      case 'NO_OPTIONS_FOUND':
+      case 'NOT_FOUND':
         return (
           <TouchableOpacity className="flex-1" onPress={onPress}>
             <Text className="text-base text-black">
-              {item.query}
+              {item.originalText}
             </Text>
             <Text className="text-sm text-red-600 mt-1">
               No matches found · Tap to retry
@@ -98,10 +109,10 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
         return (
           <View className="flex-1">
             <Text className="text-base text-gray-500 line-through">
-              {item.bookData?.title}
+              {item.resolvedTitle}
             </Text>
             <Text className="text-sm text-gray-400 mt-1">
-              {item.bookData?.author}
+              {item.resolvedAuthor}
             </Text>
           </View>
         );
