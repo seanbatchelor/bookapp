@@ -2,6 +2,7 @@ import './global.css';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BooksProvider } from './src/context/BooksContext';
 import HomeScreen from './src/screens/HomeScreen';
 import ItemScreen from './src/screens/ItemScreen';
@@ -11,6 +12,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <BooksProvider>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Home">
@@ -28,5 +30,6 @@ export default function App() {
         <StatusBar style="auto" />
       </NavigationContainer>
     </BooksProvider>
+    </GestureHandlerRootView>
   );
 }
