@@ -14,6 +14,8 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
   const { updateBookText, saveBook, markAsRead, setBookState } = useBooks();
   const inputRef = useRef<TextInput>(null);
   const spinValue = useRef(new Animated.Value(0)).current;
+  const subtitleOpacity = useRef(new Animated.Value(0)).current;
+  const subtitleSlide = useRef(new Animated.Value(4)).current;
 
   useEffect(() => {
     if (item.state === 'EMPTY') {
@@ -33,6 +35,22 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
     } else {
       spinValue.stopAnimation();
       spinValue.setValue(0);
+    }
+  }, [item.state]);
+
+  useEffect(() => {
+    if (item.state === 'UNSEARCHED') {
+      subtitleOpacity.setValue(0);
+      subtitleSlide.setValue(4);
+      setTimeout(() => {
+        Animated.parallel([
+          Animated.timing(subtitleOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+          Animated.timing(subtitleSlide, { toValue: 0, duration: 250, useNativeDriver: true }),
+        ]).start();
+      }, 50);
+    } else {
+      subtitleOpacity.setValue(0);
+      subtitleSlide.setValue(4);
     }
   }, [item.state]);
 
@@ -57,7 +75,8 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
           <View className="flex-1">
             <TextInput
               ref={inputRef}
-              className="text-base text-foreground py-2"
+              className="text-foreground"
+              style={{ fontSize: 16, paddingTop: 8, paddingBottom: 10 }}
               placeholder="Enter book title..."
               placeholderTextColor={theme.muted}
               value={item.originalText}
@@ -74,9 +93,11 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
             <Text className="text-base text-foreground">
               {item.originalText}
             </Text>
-            <Text className="text-xs text-subtle mt-0.5">
-              Not looked up yet
-            </Text>
+            <Animated.View style={{ opacity: subtitleOpacity, transform: [{ translateY: subtitleSlide }] }}>
+              <Text className="text-xs text-subtle mt-0.5">
+                Not looked up yet
+              </Text>
+            </Animated.View>
           </View>
         );
 
@@ -149,7 +170,6 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
   const showLoader = item.state === 'SEARCHING';
 
   const iconColor = theme.subtle;
-  const iconColorActive = theme.foreground;
 
   return (
     <View className="flex-row items-center px-4 py-1.5">
