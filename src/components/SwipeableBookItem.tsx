@@ -3,6 +3,7 @@ import { View, Text, Animated, PanResponder, Dimensions } from 'react-native';
 import { BookItem } from '../types/book';
 import { BookItemRow } from './BookItemRow';
 import { useBooks } from '../context/BooksContext';
+import { theme } from '../theme/colors';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = -100; // Fixed 100px reveal
@@ -120,7 +121,7 @@ export const SwipeableBookItem = ({ item, onPress }: SwipeableBookItemProps) => 
       <Animated.View
         style={{
           transform: [{ translateX }],
-          backgroundColor: 'white',
+          backgroundColor: theme.background,
         }}
         {...panResponder.panHandlers}
       >
