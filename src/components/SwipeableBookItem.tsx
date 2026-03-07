@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { View, Text } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { View, Text, Animated, LayoutChangeEvent } from 'react-native';
 import ReanimatedSwipeable, { SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { BookItem } from '../types/book';
 import { BookItemRow } from './BookItemRow';
@@ -14,10 +14,30 @@ type SwipeableBookItemProps = {
 export const SwipeableBookItem = ({ item, onPress }: SwipeableBookItemProps) => {
   const { deleteBook } = useBooks();
   const swipeableRef = useRef<SwipeableMethods>(null);
+  const rowHeight = useRef(0);
+  const heightAnim = useRef(new Animated.Value(0)).current;
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleLayout = (e: LayoutChangeEvent) => {
+    if (rowHeight.current === 0) {
+      rowHeight.current = e.nativeEvent.layout.height;
+    }
+  };
+
+  useEffect(() => {
+    if (!isDeleting) return;
+    Animated.timing(heightAnim, {
+      toValue: 0,
+      duration: 250,
+      useNativeDriver: false,
+    }).start(() => {
+      deleteBook(item.id);
+    });
+  }, [isDeleting]);
 
   const handleDelete = () => {
-    swipeableRef.current?.close();
-    deleteBook(item.id);
+    heightAnim.setValue(rowHeight.current);
+    setIsDeleting(true);
   };
 
   const renderRightActions = () => (
@@ -31,15 +51,20 @@ export const SwipeableBookItem = ({ item, onPress }: SwipeableBookItemProps) => 
   );
 
   return (
-    <ReanimatedSwipeable
-      ref={swipeableRef}
-      renderRightActions={renderRightActions}
-      onSwipeableOpen={handleDelete}
-      rightThreshold={80}
+    <Animated.View
+      style={isDeleting ? { height: heightAnim, overflow: 'hidden' } : {}}
+      onLayout={handleLayout}
     >
-      <View pointerEvents="auto" style={{ backgroundColor: theme.background }}>
-        <BookItemRow item={item} onPress={onPress} />
-      </View>
-    </ReanimatedSwipeable>
+      <ReanimatedSwipeable
+        ref={swipeableRef}
+        renderRightActions={renderRightActions}
+        onSwipeableOpen={handleDelete}
+        rightThreshold={80}
+      >
+        <View pointerEvents="auto" style={{ backgroundColor: theme.background }}>
+          <BookItemRow item={item} onPress={onPress} />
+        </View>
+      </ReanimatedSwipeable>
+    </Animated.View>
   );
 };
