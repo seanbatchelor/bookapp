@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, TextInput, Pressable, Animated } from 'react-native';
 import { Plus, Check, ArrowDown, Loader2 } from 'lucide-react-native';
 import { BookItem } from '../types/book';
 import { useBooks } from '../context/BooksContext';
@@ -11,7 +11,7 @@ type BookItemRowProps = {
 };
 
 export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
-  const { updateBookText, saveBook, markAsRead, setBookState } = useBooks();
+  const { updateBookText, lookupBook, markAsRead, setBookState } = useBooks();
   const inputRef = useRef<TextInput>(null);
   const spinValue = useRef(new Animated.Value(0)).current;
   const subtitleOpacity = useRef(new Animated.Value(0)).current;
@@ -81,7 +81,7 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
               placeholderTextColor={theme.muted}
               value={item.originalText}
               onChangeText={(text) => updateBookText(item.id, text)}
-              onSubmitEditing={() => saveBook(item.id)}
+              onSubmitEditing={() => lookupBook(item.id)}
               returnKeyType="done"
             />
           </View>
@@ -107,43 +107,46 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
             <Text className="text-base text-muted">
               {item.originalText}
             </Text>
+            <Text className="text-xs text-subtle mt-0.5">
+              Searching...
+            </Text>
           </View>
         );
 
       case 'FOUND':
         return (
-          <TouchableOpacity className="flex-1" onPress={onPress}>
+          <Pressable className="flex-1" onPress={onPress}>
             <Text className="text-base text-foreground font-medium">
               {item.resolvedTitle}
             </Text>
             <Text className="text-sm text-muted mt-0.5">
               {item.resolvedAuthor}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         );
 
       case 'OPTIONS_FOUND':
         return (
-          <TouchableOpacity className="flex-1" onPress={onPress}>
+          <Pressable className="flex-1" onPress={onPress}>
             <Text className="text-base text-foreground">
               {item.originalText}
             </Text>
             <Text className="text-sm text-amber-600 mt-0.5">
               Multiple matches found · Tap to choose
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         );
 
       case 'NOT_FOUND':
         return (
-          <TouchableOpacity className="flex-1" onPress={onPress}>
+          <Pressable className="flex-1" onPress={onPress}>
             <Text className="text-base text-foreground">
               {item.originalText}
             </Text>
             <Text className="text-sm text-danger mt-0.5">
               No matches found · Tap to retry
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         );
 
       case 'READ':
@@ -189,7 +192,7 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
         </Animated.View>
       )}
       {showCheckbox && (
-        <TouchableOpacity onPress={handleCheckbox} className="mr-3">
+        <Pressable onPress={handleCheckbox} className="mr-3">
           <View className={`w-5 h-5 rounded-full border-2 items-center justify-center ${
             item.state === 'READ'
               ? 'bg-foreground border-foreground'
@@ -199,7 +202,7 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
               <Check size={12} color={theme.background} strokeWidth={3} />
             )}
           </View>
-        </TouchableOpacity>
+        </Pressable>
       )}
       {showQuestion && (
         <View className="w-5 h-5 mr-3 items-center justify-center">
