@@ -21,7 +21,6 @@ export function ItemSheet({ bookId, onClose }: ItemSheetProps) {
 
   const handleSelectOption = (option: BookData) => {
     selectOption(bookId, option);
-    onClose();
   };
 
   const handleRetrySearch = async () => {
@@ -41,8 +40,9 @@ export function ItemSheet({ bookId, onClose }: ItemSheetProps) {
   const headerTitle = () => {
     switch (book.state) {
       case 'FOUND':
+        return 'To Read';
       case 'READ':
-        return book.resolvedTitle ?? '';
+        return 'Read';
       case 'OPTIONS_FOUND':
         return book.originalText;
       case 'NOT_FOUND':
@@ -54,9 +54,6 @@ export function ItemSheet({ bookId, onClose }: ItemSheetProps) {
 
   const headerSubtitle = () => {
     switch (book.state) {
-      case 'FOUND':
-      case 'READ':
-        return book.resolvedAuthor ?? '';
       case 'OPTIONS_FOUND':
         return 'Multiple matches found · Select one below';
       case 'NOT_FOUND':
@@ -67,13 +64,39 @@ export function ItemSheet({ bookId, onClose }: ItemSheetProps) {
   };
 
   const renderFoundView = () => (
-    <View className="flex-1 px-6 pt-2">
-      <View className="border-t border-border pt-6">
-        <Text className="text-sm text-subtle mb-2">Original search</Text>
-        <Text className="text-base text-muted">{book.originalText}</Text>
+    <View style={{ flex: 1, paddingHorizontal: 24 }}>
+      {/* Book cover */}
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ flexDirection: 'row', width: '85%', aspectRatio: 0.65 }}>
+          {/* Spine */}
+          <View style={{
+            width: 18,
+            backgroundColor: theme.foreground,
+            borderTopLeftRadius: 6,
+            borderBottomLeftRadius: 6,
+          }} />
+          {/* Cover */}
+          <View style={{
+            flex: 1,
+            borderTopWidth: 2,
+            borderRightWidth: 2,
+            borderBottomWidth: 2,
+            borderColor: theme.foreground,
+            padding: 20,
+            justifyContent: 'space-between',
+          }}>
+            <Text style={{ fontSize: 22, fontWeight: '700', color: theme.foreground, lineHeight: 28 }}>
+              {book.resolvedTitle}
+            </Text>
+            <Text style={{ fontSize: 14, color: theme.muted }}>
+              by {book.resolvedAuthor}
+            </Text>
+          </View>
+        </View>
       </View>
 
-      <View className="mt-auto pb-6">
+      {/* Delete */}
+      <View style={{ paddingBottom: 32 }}>
         <Pressable onPress={() => setShowDeleteModal(true)}>
           <Text className="text-base text-danger">Delete</Text>
         </Pressable>
