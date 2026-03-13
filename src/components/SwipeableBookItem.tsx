@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { View, Animated, Easing, LayoutChangeEvent } from 'react-native';
+import Reanimated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { Text } from './Text';
 import * as Haptics from 'expo-haptics';
 import ReanimatedSwipeable, { SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
@@ -16,6 +17,16 @@ type SwipeableBookItemProps = {
 export const SwipeableBookItem = ({ item, onPress }: SwipeableBookItemProps) => {
   const { deleteBook } = useBooks();
   const swipeableRef = useRef<SwipeableMethods>(null);
+  const highlightOpacity = useSharedValue(0);
+  const highlightStyle = useAnimatedStyle(() => ({
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#ffffff',
+    opacity: highlightOpacity.value * 0.25,
+  }));
   const rowHeight = useRef(0);
   const heightAnim = useRef(new Animated.Value(0)).current;
   const [isDeleting, setIsDeleting] = useState(false);
@@ -65,8 +76,14 @@ export const SwipeableBookItem = ({ item, onPress }: SwipeableBookItemProps) => 
         onSwipeableOpen={handleDelete}
         rightThreshold={80}
       >
-        <View pointerEvents="auto" style={{ backgroundColor: theme.background }}>
-          <BookItemRow item={item} onPress={onPress} />
+        <View style={{ backgroundColor: theme.background }}>
+          <BookItemRow
+            item={item}
+            onPress={onPress}
+            onPressIn={() => { highlightOpacity.value = withTiming(1, { duration: 200 }); }}
+            onPressOut={() => { highlightOpacity.value = withTiming(0, { duration: 300 }); }}
+          />
+          <Reanimated.View style={highlightStyle} pointerEvents="none" />
         </View>
       </ReanimatedSwipeable>
     </Animated.View>

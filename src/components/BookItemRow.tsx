@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { View, TextInput, Pressable, Animated } from 'react-native';
+import { View, TextInput, Pressable, Animated, GestureResponderEvent } from 'react-native';
 import { Text } from './Text';
 import { Plus, Check, ArrowDown, Loader2 } from 'lucide-react-native';
 import { BookItem } from '../types/book';
@@ -9,9 +9,11 @@ import { theme } from '../theme/colors';
 type BookItemRowProps = {
   item: BookItem;
   onPress: () => void;
+  onPressIn?: (e: GestureResponderEvent) => void;
+  onPressOut?: (e: GestureResponderEvent) => void;
 };
 
-export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
+export const BookItemRow = ({ item, onPress, onPressIn, onPressOut }: BookItemRowProps) => {
   const { updateBookText, lookupBook, markAsRead, setBookState } = useBooks();
   const inputRef = useRef<TextInput>(null);
   const spinValue = useRef(new Animated.Value(0)).current;
@@ -116,7 +118,7 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
 
       case 'FOUND':
         return (
-          <Pressable className="flex-1" onPress={onPress}>
+          <Pressable className="flex-1" onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut}>
             <Text className="text-base text-foreground font-medium">
               {item.resolvedTitle}
             </Text>
@@ -128,7 +130,7 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
 
       case 'OPTIONS_FOUND':
         return (
-          <Pressable className="flex-1" onPress={onPress}>
+          <Pressable className="flex-1" onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut}>
             <Text className="text-base text-foreground">
               {item.originalText}
             </Text>
@@ -140,7 +142,7 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
 
       case 'NOT_FOUND':
         return (
-          <Pressable className="flex-1" onPress={onPress}>
+          <Pressable className="flex-1" onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut}>
             <Text className="text-base text-foreground">
               {item.originalText}
             </Text>
@@ -152,7 +154,7 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
 
       case 'READ':
         return (
-          <Pressable className="flex-1" onPress={onPress}>
+          <Pressable className="flex-1" onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut}>
             <Text className="text-base text-foreground line-through">
               {item.resolvedTitle}
             </Text>
@@ -194,7 +196,7 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
         </Animated.View>
       )}
       {showCheckbox && (
-        <Pressable onPress={handleCheckbox} className="mr-3">
+        <Pressable onPress={handleCheckbox} onPressIn={onPressIn} onPressOut={onPressOut} className="mr-3">
           <View
             className={`w-7 h-7 rounded-full items-center justify-center ${
               item.state === 'READ' ? 'bg-foreground' : ''
