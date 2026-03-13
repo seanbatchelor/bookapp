@@ -20,6 +20,7 @@ export default function HomeScreen() {
   const handleItemPress = useCallback((item: BookItem) => {
     if (
       item.state === 'FOUND' ||
+      item.state === 'READ' ||
       item.state === 'OPTIONS_FOUND' ||
       item.state === 'NOT_FOUND'
     ) {

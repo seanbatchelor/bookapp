@@ -152,14 +152,14 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
 
       case 'READ':
         return (
-          <View className="flex-1">
+          <Pressable className="flex-1" onPress={onPress}>
             <Text className="text-base text-foreground line-through">
               {item.resolvedTitle}
             </Text>
             <Text className="text-sm text-subtle mt-0.5">
               {item.resolvedAuthor}
             </Text>
-          </View>
+          </Pressable>
         );
 
       default:
@@ -169,6 +169,7 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
 
   const showCheckbox = item.state === 'FOUND' || item.state === 'READ';
   const showQuestion = item.state === 'OPTIONS_FOUND';
+  const showNotFound = item.state === 'NOT_FOUND';
   const showPlus = item.state === 'EMPTY' || item.state === 'ACTIVE';
   const showArrow = item.state === 'UNSEARCHED';
   const showLoader = item.state === 'SEARCHING';
@@ -178,36 +179,48 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
   return (
     <View className="flex-row items-center px-4 py-1.5">
       {showPlus && (
-        <View className="mr-3">
-          <Plus size={20} color={iconColor} />
+        <View className="w-7 h-7 mr-3 items-center justify-center">
+          <Plus size={22} color={iconColor} />
         </View>
       )}
       {showArrow && (
-        <View className="mr-3">
-          <ArrowDown size={20} color={iconColor} />
+        <View className="w-7 h-7 mr-3 items-center justify-center">
+          <ArrowDown size={22} color={iconColor} />
         </View>
       )}
       {showLoader && (
-        <Animated.View className="mr-3" style={{ transform: [{ rotate: spin }] }}>
-          <Loader2 size={20} color={iconColor} />
+        <Animated.View className="w-7 h-7 mr-3 items-center justify-center" style={{ transform: [{ rotate: spin }] }}>
+          <Loader2 size={26} color={iconColor} />
         </Animated.View>
       )}
       {showCheckbox && (
         <Pressable onPress={handleCheckbox} className="mr-3">
-          <View className={`w-5 h-5 rounded-full border-2 items-center justify-center ${
-            item.state === 'READ'
-              ? 'bg-foreground border-foreground'
-              : 'border-muted'
-          }`}>
+          <View
+            className={`w-7 h-7 rounded-full items-center justify-center ${
+              item.state === 'READ' ? 'bg-foreground' : ''
+            }`}
+            style={item.state !== 'READ' ? { borderWidth: 2.5, borderColor: theme.muted } : undefined}
+          >
             {item.state === 'READ' && (
-              <Check size={12} color={theme.background} strokeWidth={3} />
+              <Check size={15} color={theme.background} strokeWidth={3} />
             )}
           </View>
         </Pressable>
       )}
       {showQuestion && (
-        <View className="w-5 h-5 mr-3 items-center justify-center">
-          <Text className="text-amber-600 text-base">?</Text>
+        <View
+          className="w-7 h-7 rounded-full mr-3 items-center justify-center"
+          style={{ borderWidth: 2.5, borderColor: '#D97706' }}
+        >
+          <Text style={{ fontSize: 14, fontWeight: '700', color: '#D97706' }}>?</Text>
+        </View>
+      )}
+      {showNotFound && (
+        <View
+          className="w-7 h-7 rounded-full mr-3 items-center justify-center"
+          style={{ borderWidth: 2.5, borderColor: theme.danger }}
+        >
+          <Text style={{ fontSize: 14, fontWeight: '700', color: theme.danger }}>!</Text>
         </View>
       )}
       {renderContent()}

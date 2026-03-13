@@ -29,12 +29,12 @@ module.exports = {
   theme: {
     extend: {
       fontSize: {
-        xs:   ['13px', { lineHeight: '18px' }],
-        sm:   ['15px', { lineHeight: '22px' }],
-        base: ['17px', { lineHeight: '26px' }],
-        lg:   ['19px', { lineHeight: '28px' }],
-        xl:   ['22px', { lineHeight: '30px' }],
-        '2xl': ['26px', { lineHeight: '34px' }],
+        xs:   ['13px', { lineHeight: '16px' }],
+        sm:   ['15px', { lineHeight: '20px' }],
+        base: ['17px', { lineHeight: '24px' }],
+        lg:   ['19px', { lineHeight: '26px' }],
+        xl:   ['22px', { lineHeight: '28px' }],
+        '2xl': ['26px', { lineHeight: '32px' }],
       },
       fontWeight: {
         normal:   '500',
