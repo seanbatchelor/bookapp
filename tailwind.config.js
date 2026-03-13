@@ -28,6 +28,26 @@ module.exports = {
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
+      fontSize: {
+        xs:   ['13px', { lineHeight: '18px' }],
+        sm:   ['15px', { lineHeight: '22px' }],
+        base: ['17px', { lineHeight: '26px' }],
+        lg:   ['19px', { lineHeight: '28px' }],
+        xl:   ['22px', { lineHeight: '30px' }],
+        '2xl': ['26px', { lineHeight: '34px' }],
+      },
+      fontWeight: {
+        normal:   '500',
+        medium:   '500',
+        semibold: '600',
+        bold:     '700',
+      },
+      fontFamily: {
+        sans:     ['WorkSans_400Regular'],
+        medium:   ['WorkSans_500Medium'],
+        semibold: ['WorkSans_600SemiBold'],
+        bold:     ['WorkSans_700Bold'],
+      },
       colors: {
         // Primary brand tokens
         background: palettes.primary[200],

@@ -1,5 +1,6 @@
 import React, { useMemo, useCallback, useState } from 'react';
-import { View, Text, FlatList, Pressable, Modal } from 'react-native';
+import { View, FlatList, Pressable, Modal } from 'react-native';
+import { Text } from '../components/Text';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBooks } from '../context/BooksContext';
 import { SwipeableBookItem } from '../components/SwipeableBookItem';

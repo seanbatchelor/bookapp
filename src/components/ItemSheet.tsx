@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, Modal } from 'react-native';
+import { View, TextInput, Pressable, ScrollView, Modal } from 'react-native';
+import { Text } from './Text';
 import { useBooks } from '../context/BooksContext';
 import { BookData } from '../types/book';
 import { X } from 'lucide-react-native';
@@ -85,10 +86,10 @@ export function ItemSheet({ bookId, onClose }: ItemSheetProps) {
             padding: 20,
             justifyContent: 'space-between',
           }}>
-            <Text style={{ fontSize: 22, fontWeight: '700', color: theme.foreground, lineHeight: 28 }}>
+            <Text style={{ fontSize: 22, fontWeight: '700', color: theme.foreground, lineHeight: 30 }}>
               {book.resolvedTitle}
             </Text>
-            <Text style={{ fontSize: 14, color: theme.muted }}>
+            <Text style={{ fontSize: 15, color: theme.muted }}>
               by {book.resolvedAuthor}
             </Text>
           </View>

@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, Animated, Easing, LayoutChangeEvent } from 'react-native';
+import { View, Animated, Easing, LayoutChangeEvent } from 'react-native';
+import { Text } from './Text';
 import * as Haptics from 'expo-haptics';
 import ReanimatedSwipeable, { SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { BookItem } from '../types/book';

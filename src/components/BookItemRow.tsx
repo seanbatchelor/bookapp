@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
-import { View, Text, TextInput, Pressable, Animated } from 'react-native';
+import { View, TextInput, Pressable, Animated } from 'react-native';
+import { Text } from './Text';
 import { Plus, Check, ArrowDown, Loader2 } from 'lucide-react-native';
 import { BookItem } from '../types/book';
 import { useBooks } from '../context/BooksContext';
@@ -76,7 +77,7 @@ export const BookItemRow = ({ item, onPress }: BookItemRowProps) => {
             <TextInput
               ref={inputRef}
               className="text-foreground"
-              style={{ fontSize: 16, paddingTop: 8, paddingBottom: 10 }}
+              style={{ fontFamily: 'WorkSans_500Medium', fontSize: 17, paddingTop: 8, paddingBottom: 10 }}
               placeholder="Enter book title..."
               placeholderTextColor={theme.muted}
               value={item.originalText}
