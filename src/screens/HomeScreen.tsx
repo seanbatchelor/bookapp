@@ -1,6 +1,7 @@
 import React, { useMemo, useCallback, useState } from 'react';
 import { View, FlatList, Pressable, Modal } from 'react-native';
 import { Text } from '../components/Text';
+import { DitherFade } from '../components/ui/DitherFade';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBooks } from '../context/BooksContext';
 import { SwipeableBookItem } from '../components/SwipeableBookItem';
@@ -33,25 +34,36 @@ export default function HomeScreen() {
   }, []);
 
   const sections = useMemo(() => {
-    const result: Array<{ type: 'header' | 'item'; data: any }> = [];
+    const result: Array<{ type: 'header' | 'item' | 'dither-fade'; data: any }> = [];
     if (unreadBooks.length > 0) {
       result.push({ type: 'header', data: 'To Read' });
       unreadBooks.forEach(book => result.push({ type: 'item', data: book }));
     }
     if (readBooks.length > 0) {
+      result.push({ type: 'dither-fade', data: null });
       result.push({ type: 'header', data: 'Read' });
       readBooks.forEach(book => result.push({ type: 'item', data: book }));
     }
     return result;
   }, [unreadBooks, readBooks]);
 
-  const renderItem = useCallback(({ item }: { item: { type: 'header' | 'item'; data: any } }) => {
+  const renderItem = useCallback(({ item }: { item: { type: 'header' | 'item' | 'dither-fade'; data: any } }) => {
     if (item.type === 'header') {
       return (
-        <View className="px-4 py-2">
+        <View
+          className="px-4 py-2"
+          style={item.data === 'Read' ? { zIndex: 1 } : undefined}
+        >
           <Text className="text-sm text-muted">
             {item.data}
           </Text>
+        </View>
+      );
+    }
+    if (item.type === 'dither-fade') {
+      return (
+        <View style={{ marginTop: 12, marginBottom: -20, borderTopWidth: 1, borderTopColor: '#5EC986' }}>
+          <DitherFade direction="up" />
         </View>
       );
     }
@@ -64,7 +76,7 @@ export default function HomeScreen() {
         data={sections}
         renderItem={renderItem}
         keyExtractor={(item) =>
-          item.type === 'header' ? `header-${item.data}` : `item-${item.data.id}`
+          item.type === 'header' ? `header-${item.data}` : item.type === 'dither-fade' ? 'dither-fade-read' : `item-${item.data.id}`
         }
         contentContainerStyle={{ flexGrow: 1 }}
         ListEmptyComponent={
