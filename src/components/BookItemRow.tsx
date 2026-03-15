@@ -134,7 +134,7 @@ export const BookItemRow = ({ item, onPress, onPressIn, onPressOut }: BookItemRo
             <Text className="text-base text-foreground">
               {item.originalText}
             </Text>
-            <Text className="text-sm text-amber-600 mt-0.5">
+            <Text className="text-sm text-primary mt-0.5">
               Multiple matches found · Tap to choose
             </Text>
           </Pressable>
@@ -212,9 +212,9 @@ export const BookItemRow = ({ item, onPress, onPressIn, onPressOut }: BookItemRo
       {showQuestion && (
         <View
           className="w-7 h-7 rounded-full mr-3 items-center justify-center"
-          style={{ borderWidth: 2.5, borderColor: '#D97706' }}
+          style={{ borderWidth: 2.5, borderColor: '#37AE63' }}
         >
-          <Text style={{ fontSize: 14, fontWeight: '700', color: '#D97706' }}>?</Text>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: '#37AE63' }}>?</Text>
         </View>
       )}
       {showNotFound && (
