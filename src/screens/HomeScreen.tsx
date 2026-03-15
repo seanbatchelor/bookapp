@@ -2,6 +2,7 @@ import React, { useMemo, useCallback, useState } from 'react';
 import { View, FlatList, Pressable, Modal } from 'react-native';
 import { Text } from '../components/Text';
 import { DitherFade } from '../components/ui/DitherFade';
+import { DitherCircle } from '../components/ui/DitherCircle';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBooks } from '../context/BooksContext';
 import { SwipeableBookItem } from '../components/SwipeableBookItem';
@@ -88,12 +89,18 @@ export default function HomeScreen() {
         }
       />
 
-      <Pressable
-        className="absolute bottom-8 right-8 bg-foreground w-14 h-14 rounded-full items-center justify-center shadow-lg"
-        onPress={addBook}
-      >
-        <Text className="text-background text-3xl">+</Text>
-      </Pressable>
+      <View style={{ position: 'absolute', bottom: 32, right: 32 }}>
+        <View style={{ position: 'absolute', top: 3, left: 2 }}>
+          <DitherCircle size={53} />
+        </View>
+        <Pressable
+          className="w-14 h-14 rounded-full items-center justify-center"
+          style={{ backgroundColor: '#298E4E' }}
+          onPress={addBook}
+        >
+          <Text className="text-background text-3xl">+</Text>
+        </Pressable>
+      </View>
 
       <Modal
         visible={!!selectedBookId}

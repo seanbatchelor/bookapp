@@ -50,6 +50,7 @@ module.exports = {
       },
       colors: {
         // Primary brand tokens
+        primary: palettes.primary[500],
         background: palettes.primary[200],
         surface:    palettes.primary[100],
         border:     palettes.primary[300],
