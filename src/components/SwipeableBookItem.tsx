@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { View, Animated, Easing, LayoutChangeEvent } from 'react-native';
+import { DitherFade } from './ui/DitherFade';
 import Reanimated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { Text } from './Text';
 import * as Haptics from 'expo-haptics';
@@ -57,6 +58,12 @@ export const SwipeableBookItem = ({ item, onPress }: SwipeableBookItemProps) => 
 
   const renderRightActions = () => (
     <View style={{ flex: 1 }} className="bg-red-600">
+
+      {/* Top edge dither — dense at top, fading down */}
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0 }} pointerEvents="none">
+        <DitherFade direction="up" height={16} color="#991b1b" background="#dc2626" />
+      </View>
+
       <View style={{ position: 'absolute', right: 0, top: 0, bottom: 0 }} className="justify-center px-6">
         <Text className="text-white font-semibold text-base" onPress={handleDelete}>
           Delete
