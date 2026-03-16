@@ -3,6 +3,7 @@ import { View, FlatList, Pressable, Modal } from 'react-native';
 import { Text } from '../components/Text';
 import { DitherFade } from '../components/ui/DitherFade';
 import { DitherCircle } from '../components/ui/DitherCircle';
+import { FloatingNav } from '../components/FloatingNav';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBooks } from '../context/BooksContext';
 import { SwipeableBookItem } from '../components/SwipeableBookItem';
@@ -101,6 +102,8 @@ export default function HomeScreen() {
           <Text className="text-background text-3xl">+</Text>
         </Pressable>
       </View>
+
+      <FloatingNav />
 
       <Modal
         visible={!!selectedBookId}

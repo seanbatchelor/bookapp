@@ -14,6 +14,7 @@ import {
 } from '@expo-google-fonts/work-sans';
 import { BooksProvider } from './src/context/BooksContext';
 import HomeScreen from './src/screens/HomeScreen';
+import LibraryScreen from './src/screens/LibraryScreen';
 import { RootStackParamList } from './src/types/navigation';
 
 SplashScreen.preventAutoHideAsync();
@@ -44,6 +45,11 @@ export default function App() {
             <Stack.Screen
               name="Home"
               component={HomeScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Library"
+              component={LibraryScreen}
               options={{ headerShown: false }}
             />
           </Stack.Navigator>

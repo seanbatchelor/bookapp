@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { BookItem, BookData } from '../types/book';
 import { googleBooksLookup } from '../utils/googleBooksLookup';
+import { USE_SEED_DATA, SEED_BOOKS } from '../data/seedData';
 
 type BooksContextType = {
   books: BookItem[];
@@ -18,7 +19,7 @@ type BooksContextType = {
 const BooksContext = createContext<BooksContextType | undefined>(undefined);
 
 export const BooksProvider = ({ children }: { children: ReactNode }) => {
-  const [books, setBooks] = useState<BookItem[]>([]);
+  const [books, setBooks] = useState<BookItem[]>(USE_SEED_DATA ? SEED_BOOKS : []);
 
   const addBook = () => {
     const newBook: BookItem = {
