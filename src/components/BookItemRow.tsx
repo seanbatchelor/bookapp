@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useCallback } from 'react';
-import { View, TextInput, Pressable, Animated, GestureResponderEvent } from 'react-native';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
+import { View, TextInput, Pressable, Animated, GestureResponderEvent, LayoutChangeEvent } from 'react-native';
 import { Text } from './Text';
 import { Plus, Check, ArrowDown, Loader2 } from 'lucide-react-native';
 import { BookItem } from '../types/book';
@@ -21,8 +21,13 @@ export const BookItemRow = ({ item, onPress, onPressIn, onPressOut }: BookItemRo
   const subtitleSlide = useRef(new Animated.Value(4)).current;
   const checkboxFill = useRef(new Animated.Value(item.state === 'READ' ? 1 : 0)).current;
   const checkmarkOpacity = useRef(new Animated.Value(item.state === 'READ' ? 1 : 0)).current;
-  const checkboxActionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const checkboxPendingRef = useRef(false);
+  const rowHeightAnim = useRef(new Animated.Value(0)).current;
+  const rowContentOpacity = useRef(new Animated.Value(1)).current;
+  const naturalHeightRef = useRef(0);
+  const rowCollapseActiveRef = useRef(false);
+  const rowContentMeasureRef = useRef<View>(null);
+  const [rowLayoutReady, setRowLayoutReady] = useState(false);
 
   useEffect(() => {
     if (item.state === 'EMPTY') {
@@ -62,10 +67,14 @@ export const BookItemRow = ({ item, onPress, onPressIn, onPressOut }: BookItemRo
   }, [item.state]);
 
   useEffect(() => {
-    if (checkboxActionTimeoutRef.current !== null) {
-      clearTimeout(checkboxActionTimeoutRef.current);
-      checkboxActionTimeoutRef.current = null;
-    }
+    setRowLayoutReady(false);
+    naturalHeightRef.current = 0;
+    rowHeightAnim.setValue(0);
+    rowContentOpacity.stopAnimation();
+    rowContentOpacity.setValue(1);
+  }, [item.id, rowHeightAnim, rowContentOpacity]);
+
+  useEffect(() => {
     checkboxPendingRef.current = false;
     const checked = item.state === 'READ';
     const v = checked ? 1 : 0;
@@ -73,51 +82,154 @@ export const BookItemRow = ({ item, onPress, onPressIn, onPressOut }: BookItemRo
     checkmarkOpacity.stopAnimation();
     checkboxFill.setValue(v);
     checkmarkOpacity.setValue(v);
-  }, [item.id, item.state]);
+    rowCollapseActiveRef.current = false;
+    rowHeightAnim.stopAnimation();
+    rowContentOpacity.stopAnimation();
+    rowContentOpacity.setValue(1);
+    const h = naturalHeightRef.current;
+    if (h > 0) {
+      rowHeightAnim.setValue(h);
+    } else {
+      setRowLayoutReady(false);
+      rowHeightAnim.setValue(0);
+    }
+  }, [item.id, item.state, rowHeightAnim, rowContentOpacity]);
 
   useEffect(() => {
     return () => {
-      if (checkboxActionTimeoutRef.current !== null) {
-        clearTimeout(checkboxActionTimeoutRef.current);
-      }
+      rowHeightAnim.stopAnimation();
+      rowContentOpacity.stopAnimation();
     };
-  }, []);
+  }, [rowHeightAnim, rowContentOpacity]);
 
   const spin = spinValue.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
 
+  const onRowContentLayout = useCallback(
+    (e: LayoutChangeEvent) => {
+      if (rowCollapseActiveRef.current) return;
+
+      const h = e.nativeEvent.layout.height;
+      if (h > 0) {
+        naturalHeightRef.current = h;
+      }
+
+      if (!rowLayoutReady) {
+        const targetH = h > 0 ? h : naturalHeightRef.current;
+        if (targetH > 0) {
+          rowHeightAnim.setValue(targetH);
+          setRowLayoutReady(true);
+        }
+        return;
+      }
+
+      if (h > 0) {
+        rowHeightAnim.setValue(h);
+      }
+    },
+    [rowHeightAnim, rowLayoutReady]
+  );
+
   const handleCheckbox = useCallback(() => {
     if (checkboxPendingRef.current) return;
+
+    const runRowCollapseThen = (onComplete: () => void) => {
+      const fadeMs = 220;
+      const heightMs = 200;
+      const heightDelayMs = 70;
+      const fallbackRowH = 56;
+
+      const startCollapse = (fromH: number) => {
+        naturalHeightRef.current = Math.max(naturalHeightRef.current, fromH);
+        rowCollapseActiveRef.current = true;
+        rowHeightAnim.setValue(fromH);
+        rowContentOpacity.setValue(1);
+        Animated.parallel([
+          Animated.timing(rowContentOpacity, {
+            toValue: 0,
+            duration: fadeMs,
+            useNativeDriver: false,
+          }),
+          Animated.sequence([
+            Animated.delay(heightDelayMs),
+            Animated.timing(rowHeightAnim, {
+              toValue: 0,
+              duration: heightMs,
+              useNativeDriver: false,
+            }),
+          ]),
+        ]).start(({ finished: collapseFinished }) => {
+          rowCollapseActiveRef.current = false;
+          if (!collapseFinished) {
+            checkboxPendingRef.current = false;
+            rowHeightAnim.setValue(fromH);
+            rowContentOpacity.setValue(1);
+            return;
+          }
+          onComplete();
+        });
+      };
+
+      const beginWithHeight = (h: number) => {
+        const fromH = h > 0 ? h : fallbackRowH;
+        setRowLayoutReady(true);
+        startCollapse(fromH);
+      };
+
+      if (naturalHeightRef.current > 0) {
+        beginWithHeight(naturalHeightRef.current);
+        return;
+      }
+
+      const node = rowContentMeasureRef.current;
+      const runMeasure = () => {
+        if (!node?.measure) {
+          beginWithHeight(fallbackRowH);
+          return;
+        }
+        node.measure((_x, _y, _w, measuredH, _pageX, _pageY) => {
+          if (measuredH > 0) {
+            beginWithHeight(measuredH);
+            return;
+          }
+          requestAnimationFrame(() => {
+            node.measure((_x2, _y2, _w2, measuredH2) => {
+              beginWithHeight(measuredH2 > 0 ? measuredH2 : fallbackRowH);
+            });
+          });
+        });
+      };
+      requestAnimationFrame(runMeasure);
+    };
+
     if (item.state === 'FOUND') {
       checkboxPendingRef.current = true;
-      if (checkboxActionTimeoutRef.current !== null) {
-        clearTimeout(checkboxActionTimeoutRef.current);
-      }
       Animated.parallel([
         Animated.timing(checkboxFill, { toValue: 1, duration: 200, useNativeDriver: true }),
         Animated.timing(checkmarkOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
-      ]).start();
-      checkboxActionTimeoutRef.current = setTimeout(() => {
-        checkboxActionTimeoutRef.current = null;
-        markAsRead(item.id);
-      }, 250);
+      ]).start(({ finished }) => {
+        if (!finished) {
+          checkboxPendingRef.current = false;
+          return;
+        }
+        runRowCollapseThen(() => markAsRead(item.id));
+      });
     } else if (item.state === 'READ') {
       checkboxPendingRef.current = true;
-      if (checkboxActionTimeoutRef.current !== null) {
-        clearTimeout(checkboxActionTimeoutRef.current);
-      }
       Animated.parallel([
         Animated.timing(checkboxFill, { toValue: 0, duration: 200, useNativeDriver: true }),
         Animated.timing(checkmarkOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),
-      ]).start();
-      checkboxActionTimeoutRef.current = setTimeout(() => {
-        checkboxActionTimeoutRef.current = null;
-        setBookState(item.id, 'FOUND');
-      }, 250);
+      ]).start(({ finished }) => {
+        if (!finished) {
+          checkboxPendingRef.current = false;
+          return;
+        }
+        runRowCollapseThen(() => setBookState(item.id, 'FOUND'));
+      });
     }
-  }, [item.id, item.state, checkboxFill, checkmarkOpacity, markAsRead, setBookState]);
+  }, [item.id, item.state, checkboxFill, checkmarkOpacity, markAsRead, setBookState, rowHeightAnim, rowContentOpacity]);
 
   const checkboxBorderOpacity = checkboxFill.interpolate({
     inputRange: [0, 1],
@@ -233,74 +345,89 @@ export const BookItemRow = ({ item, onPress, onPressIn, onPressOut }: BookItemRo
   const iconColor = theme.subtle;
 
   return (
-    <View className="flex-row items-center px-4 py-1.5">
-      {showPlus && (
-        <View className="w-7 h-7 mr-3 items-center justify-center">
-          <Plus size={22} color={iconColor} />
-        </View>
-      )}
-      {showArrow && (
-        <View className="w-7 h-7 mr-3 items-center justify-center">
-          <ArrowDown size={22} color={iconColor} />
-        </View>
-      )}
-      {showLoader && (
-        <Animated.View className="w-7 h-7 mr-3 items-center justify-center" style={{ transform: [{ rotate: spin }] }}>
-          <Loader2 size={26} color={iconColor} />
-        </Animated.View>
-      )}
-      {showCheckbox && (
-        <Pressable onPress={handleCheckbox} onPressIn={onPressIn} onPressOut={onPressOut} className="mr-3">
-          <View
-            className="w-7 h-7 rounded-full items-center justify-center overflow-hidden"
-            style={{ position: 'relative' }}
-          >
-            <Animated.View
-              pointerEvents="none"
-              style={{
-                position: 'absolute',
-                width: 28,
-                height: 28,
-                borderRadius: 14,
-                borderWidth: 2.5,
-                borderColor: theme.muted,
-                opacity: checkboxBorderOpacity,
-              }}
-            />
-            <Animated.View
-              pointerEvents="none"
-              style={{
-                position: 'absolute',
-                width: 28,
-                height: 28,
-                borderRadius: 14,
-                backgroundColor: theme.foreground,
-                opacity: checkboxFill,
-              }}
-            />
-            <Animated.View pointerEvents="none" style={{ opacity: checkmarkOpacity }}>
-              <Check size={15} color={theme.background} strokeWidth={3} />
+    <Animated.View
+      style={
+        rowLayoutReady
+          ? { height: rowHeightAnim, overflow: 'hidden' }
+          : { overflow: 'hidden' }
+      }
+    >
+      <View
+        ref={rowContentMeasureRef}
+        className="px-4 py-1.5"
+        collapsable={false}
+        onLayout={onRowContentLayout}
+      >
+        <Animated.View className="flex-row items-center" style={{ opacity: rowContentOpacity }}>
+          {showPlus && (
+            <View className="w-7 h-7 mr-3 items-center justify-center">
+              <Plus size={22} color={iconColor} />
+            </View>
+          )}
+          {showArrow && (
+            <View className="w-7 h-7 mr-3 items-center justify-center">
+              <ArrowDown size={22} color={iconColor} />
+            </View>
+          )}
+          {showLoader && (
+            <Animated.View className="w-7 h-7 mr-3 items-center justify-center" style={{ transform: [{ rotate: spin }] }}>
+              <Loader2 size={26} color={iconColor} />
             </Animated.View>
-          </View>
-        </Pressable>
-      )}
-      {showQuestion && (
-        <View
-          className="w-7 h-7 rounded-full mr-3 items-center justify-center"
-          style={{ borderWidth: 2.5, borderColor: '#37AE63' }}
-        >
-          <Text style={{ fontSize: 14, fontWeight: '700', color: '#37AE63' }}>?</Text>
-        </View>
-      )}
-      {showNotFound && (
-        <View
-          className="w-7 h-7 rounded-full mr-3 items-center justify-center"
-          style={{ borderWidth: 2.5, borderColor: theme.danger }}
-        >
-          <Text style={{ fontSize: 14, fontWeight: '700', color: theme.danger }}>!</Text>
-        </View>
-      )}
-      {renderContent()}
-    </View>
+          )}
+          {showCheckbox && (
+            <Pressable onPress={handleCheckbox} onPressIn={onPressIn} onPressOut={onPressOut} className="mr-3">
+              <View
+                className="w-7 h-7 rounded-full items-center justify-center overflow-hidden"
+                style={{ position: 'relative' }}
+              >
+                <Animated.View
+                  pointerEvents="none"
+                  style={{
+                    position: 'absolute',
+                    width: 28,
+                    height: 28,
+                    borderRadius: 14,
+                    borderWidth: 3.5,
+                    borderColor: theme.muted,
+                    opacity: checkboxBorderOpacity,
+                  }}
+                />
+                <Animated.View
+                  pointerEvents="none"
+                  style={{
+                    position: 'absolute',
+                    width: 28,
+                    height: 28,
+                    borderRadius: 14,
+                    backgroundColor: theme.foreground,
+                    opacity: checkboxFill,
+                  }}
+                />
+                <Animated.View pointerEvents="none" style={{ opacity: checkmarkOpacity }}>
+                  <Check size={16} color={theme.background} strokeWidth={4} />
+                </Animated.View>
+              </View>
+            </Pressable>
+          )}
+          {showQuestion && (
+            <View
+              className="w-7 h-7 rounded-full mr-3 items-center justify-center"
+              style={{ borderWidth: 2.5, borderColor: '#37AE63' }}
+            >
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#37AE63' }}>?</Text>
+            </View>
+          )}
+          {showNotFound && (
+            <View
+              className="w-7 h-7 rounded-full mr-3 items-center justify-center"
+              style={{ borderWidth: 2.5, borderColor: theme.danger }}
+            >
+              <Text style={{ fontSize: 14, fontWeight: '700', color: theme.danger }}>!</Text>
+            </View>
+          )}
+          {renderContent()}
+        </Animated.View>
+      </View>
+    </Animated.View>
   );
 };

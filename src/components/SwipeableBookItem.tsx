@@ -33,9 +33,8 @@ export const SwipeableBookItem = ({ item, onPress }: SwipeableBookItemProps) => 
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleLayout = (e: LayoutChangeEvent) => {
-    if (rowHeight.current === 0) {
-      rowHeight.current = e.nativeEvent.layout.height;
-    }
+    const h = e.nativeEvent.layout.height;
+    rowHeight.current = Math.max(rowHeight.current, h);
   };
 
   useEffect(() => {

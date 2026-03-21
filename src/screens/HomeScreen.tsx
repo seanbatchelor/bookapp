@@ -82,7 +82,7 @@ export default function HomeScreen() {
         keyExtractor={(item) =>
           item.type === 'header' ? `header-${item.data}` : item.type === 'dither-fade' ? 'dither-fade-read' : `item-${item.data.id}`
         }
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 112 }}
         ListEmptyComponent={
           <View className="flex-1 justify-center items-center py-16">
             <Text className="text-muted text-center text-base">
