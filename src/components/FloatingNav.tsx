@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Text } from './Text';
@@ -13,6 +14,7 @@ const ITEMS: { label: string; route: keyof RootStackParamList }[] = [
 ];
 
 export function FloatingNav() {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
   const route = useRoute();
 
@@ -20,7 +22,7 @@ export function FloatingNav() {
     <View
       style={{
         position: 'absolute',
-        bottom: 32,
+        bottom: 12 + insets.bottom,
         left: 24,
         flexDirection: 'row',
         borderRadius: 999,

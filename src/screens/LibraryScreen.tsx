@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState, useCallback } from 'react';
 import { View, FlatList, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../components/Text';
 import { FloatingNav } from '../components/FloatingNav';
 import { AlphabetScrubber } from '../components/AlphabetScrubber';
@@ -145,6 +145,7 @@ function AuthorRow({ author }: { author: string }) {
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function LibraryScreen() {
+  const insets = useSafeAreaInsets();
   const { books } = useBooks();
   const [activeTab, setActiveTab] = useState<Tab>('Books');
   const listRef = useRef<FlatList<SectionRow>>(null);
@@ -171,8 +172,10 @@ export default function LibraryScreen() {
     listRef.current?.scrollToOffset({ offset: 0, animated: false });
   }, []);
 
+  const listPaddingBottom = insets.bottom + 72;
+
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView edges={['top', 'left', 'right']} className="flex-1 bg-background">
       {/* Tab bar */}
       <View
         style={{
@@ -214,11 +217,12 @@ export default function LibraryScreen() {
       <View style={{ flex: 1, position: 'relative' }}>
         <FlatList
           ref={listRef}
+          style={{ flex: 1 }}
           data={sections}
           renderItem={renderItem}
           keyExtractor={(item) => item.key}
           getItemLayout={getItemLayout}
-          contentContainerStyle={{ paddingRight: 32, flexGrow: 1 }}
+          contentContainerStyle={{ paddingRight: 32, flexGrow: 1, paddingBottom: listPaddingBottom }}
           onScrollToIndexFailed={(info) => {
             // Fall back to offset-based scroll if index isn't measured yet
             listRef.current?.scrollToOffset({

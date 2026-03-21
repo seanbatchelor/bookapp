@@ -4,13 +4,14 @@ import { Text } from '../components/Text';
 import { DitherFade } from '../components/ui/DitherFade';
 import { DitherCircle } from '../components/ui/DitherCircle';
 import { FloatingNav } from '../components/FloatingNav';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBooks } from '../context/BooksContext';
 import { SwipeableBookItem } from '../components/SwipeableBookItem';
 import { ItemSheet } from '../components/ItemSheet';
 import { BookItem } from '../types/book';
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const { books, addBook } = useBooks();
   const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
 
@@ -74,15 +75,18 @@ export default function HomeScreen() {
     return <SwipeableBookItem item={item.data} onPress={() => handleItemPress(item.data)} />;
   }, [handleItemPress]);
 
+  const listPaddingBottom = insets.bottom + 96;
+
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView edges={['top', 'left', 'right']} className="flex-1 bg-background">
       <FlatList
+        style={{ flex: 1 }}
         data={sections}
         renderItem={renderItem}
         keyExtractor={(item) =>
           item.type === 'header' ? `header-${item.data}` : item.type === 'dither-fade' ? 'dither-fade-read' : `item-${item.data.id}`
         }
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 112 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: listPaddingBottom }}
         ListEmptyComponent={
           <View className="flex-1 justify-center items-center py-16">
             <Text className="text-muted text-center text-base">
@@ -92,7 +96,7 @@ export default function HomeScreen() {
         }
       />
 
-      <View style={{ position: 'absolute', bottom: 32, right: 32 }}>
+      <View style={{ position: 'absolute', bottom: 12 + insets.bottom, right: 32 }}>
         <View style={{ position: 'absolute', top: 3, left: 2 }}>
           <DitherCircle size={53} />
         </View>
