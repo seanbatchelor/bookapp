@@ -22,10 +22,12 @@ export const BooksProvider = ({ children }: { children: ReactNode }) => {
   const [books, setBooks] = useState<BookItem[]>(USE_SEED_DATA ? SEED_BOOKS : []);
 
   const addBook = () => {
+    const ts = Date.now();
     const newBook: BookItem = {
-      id: Date.now().toString(),
+      id: ts.toString(),
       state: 'EMPTY',
       originalText: '',
+      sortOrder: ts,
     };
     setBooks(prev => [newBook, ...prev]);
   };
@@ -124,8 +126,9 @@ export const BooksProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const markAsRead = (id: string) => {
+    const sortOrder = Date.now();
     setBooks(prev => prev.map(b => 
-      b.id === id ? { ...b, state: 'READ' } : b
+      b.id === id ? { ...b, state: 'READ', sortOrder } : b
     ));
   };
 
@@ -134,9 +137,14 @@ export const BooksProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const setBookState = (id: string, state: BookItem['state']) => {
-    setBooks(prev => prev.map(b => 
-      b.id === id ? { ...b, state } : b
-    ));
+    setBooks(prev => prev.map(b => {
+      if (b.id !== id) return b;
+      const next: BookItem = { ...b, state };
+      if (b.state === 'READ' && state === 'FOUND') {
+        next.sortOrder = -Date.now();
+      }
+      return next;
+    }));
   };
 
   return (

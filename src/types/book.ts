@@ -16,6 +16,7 @@ export type BookData = {
 export type BookItem = {
   id: string;
   state: BookState;
+  sortOrder?: number;
   originalText: string;
   resolvedTitle?: string;
   resolvedAuthor?: string;

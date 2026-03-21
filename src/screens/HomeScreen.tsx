@@ -15,8 +15,10 @@ export default function HomeScreen() {
   const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
 
   const { unreadBooks, readBooks } = useMemo(() => {
-    const unread = books.filter(b => b.state !== 'READ');
-    const read = books.filter(b => b.state === 'READ');
+    const bySortDesc = (a: BookItem, b: BookItem) =>
+      (b.sortOrder ?? 0) - (a.sortOrder ?? 0);
+    const unread = books.filter(b => b.state !== 'READ').sort(bySortDesc);
+    const read = books.filter(b => b.state === 'READ').sort(bySortDesc);
     return { unreadBooks: unread, readBooks: read };
   }, [books]);
 
