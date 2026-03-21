@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { View, TextInput, Pressable, Animated, GestureResponderEvent } from 'react-native';
 import { Text } from './Text';
 import { Plus, Check, ArrowDown, Loader2 } from 'lucide-react-native';
@@ -19,6 +19,10 @@ export const BookItemRow = ({ item, onPress, onPressIn, onPressOut }: BookItemRo
   const spinValue = useRef(new Animated.Value(0)).current;
   const subtitleOpacity = useRef(new Animated.Value(0)).current;
   const subtitleSlide = useRef(new Animated.Value(4)).current;
+  const checkboxFill = useRef(new Animated.Value(item.state === 'READ' ? 1 : 0)).current;
+  const checkmarkOpacity = useRef(new Animated.Value(item.state === 'READ' ? 1 : 0)).current;
+  const checkboxActionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const checkboxPendingRef = useRef(false);
 
   useEffect(() => {
     if (item.state === 'EMPTY') {
@@ -57,18 +61,68 @@ export const BookItemRow = ({ item, onPress, onPressIn, onPressOut }: BookItemRo
     }
   }, [item.state]);
 
+  useEffect(() => {
+    if (checkboxActionTimeoutRef.current !== null) {
+      clearTimeout(checkboxActionTimeoutRef.current);
+      checkboxActionTimeoutRef.current = null;
+    }
+    checkboxPendingRef.current = false;
+    const checked = item.state === 'READ';
+    const v = checked ? 1 : 0;
+    checkboxFill.stopAnimation();
+    checkmarkOpacity.stopAnimation();
+    checkboxFill.setValue(v);
+    checkmarkOpacity.setValue(v);
+  }, [item.id, item.state]);
+
+  useEffect(() => {
+    return () => {
+      if (checkboxActionTimeoutRef.current !== null) {
+        clearTimeout(checkboxActionTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const spin = spinValue.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
 
-  const handleCheckbox = () => {
+  const handleCheckbox = useCallback(() => {
+    if (checkboxPendingRef.current) return;
     if (item.state === 'FOUND') {
-      markAsRead(item.id);
+      checkboxPendingRef.current = true;
+      if (checkboxActionTimeoutRef.current !== null) {
+        clearTimeout(checkboxActionTimeoutRef.current);
+      }
+      Animated.parallel([
+        Animated.timing(checkboxFill, { toValue: 1, duration: 200, useNativeDriver: true }),
+        Animated.timing(checkmarkOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+      ]).start();
+      checkboxActionTimeoutRef.current = setTimeout(() => {
+        checkboxActionTimeoutRef.current = null;
+        markAsRead(item.id);
+      }, 250);
     } else if (item.state === 'READ') {
-      setBookState(item.id, 'FOUND');
+      checkboxPendingRef.current = true;
+      if (checkboxActionTimeoutRef.current !== null) {
+        clearTimeout(checkboxActionTimeoutRef.current);
+      }
+      Animated.parallel([
+        Animated.timing(checkboxFill, { toValue: 0, duration: 200, useNativeDriver: true }),
+        Animated.timing(checkmarkOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]).start();
+      checkboxActionTimeoutRef.current = setTimeout(() => {
+        checkboxActionTimeoutRef.current = null;
+        setBookState(item.id, 'FOUND');
+      }, 250);
     }
-  };
+  }, [item.id, item.state, checkboxFill, checkmarkOpacity, markAsRead, setBookState]);
+
+  const checkboxBorderOpacity = checkboxFill.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0],
+  });
 
   const renderContent = () => {
     switch (item.state) {
@@ -198,14 +252,35 @@ export const BookItemRow = ({ item, onPress, onPressIn, onPressOut }: BookItemRo
       {showCheckbox && (
         <Pressable onPress={handleCheckbox} onPressIn={onPressIn} onPressOut={onPressOut} className="mr-3">
           <View
-            className={`w-7 h-7 rounded-full items-center justify-center ${
-              item.state === 'READ' ? 'bg-foreground' : ''
-            }`}
-            style={item.state !== 'READ' ? { borderWidth: 2.5, borderColor: theme.muted } : undefined}
+            className="w-7 h-7 rounded-full items-center justify-center overflow-hidden"
+            style={{ position: 'relative' }}
           >
-            {item.state === 'READ' && (
+            <Animated.View
+              pointerEvents="none"
+              style={{
+                position: 'absolute',
+                width: 28,
+                height: 28,
+                borderRadius: 14,
+                borderWidth: 2.5,
+                borderColor: theme.muted,
+                opacity: checkboxBorderOpacity,
+              }}
+            />
+            <Animated.View
+              pointerEvents="none"
+              style={{
+                position: 'absolute',
+                width: 28,
+                height: 28,
+                borderRadius: 14,
+                backgroundColor: theme.foreground,
+                opacity: checkboxFill,
+              }}
+            />
+            <Animated.View pointerEvents="none" style={{ opacity: checkmarkOpacity }}>
               <Check size={15} color={theme.background} strokeWidth={3} />
-            )}
+            </Animated.View>
           </View>
         </Pressable>
       )}

@@ -139,11 +139,15 @@ export const BooksProvider = ({ children }: { children: ReactNode }) => {
   const setBookState = (id: string, state: BookItem['state']) => {
     setBooks(prev => prev.map(b => {
       if (b.id !== id) return b;
-      const next: BookItem = { ...b, state };
       if (b.state === 'READ' && state === 'FOUND') {
-        next.sortOrder = -Date.now();
+        const unreadSorts = prev
+          .filter(x => x.state !== 'READ')
+          .map(x => x.sortOrder ?? 0);
+        const minUnread =
+          unreadSorts.length === 0 ? 0 : Math.min(...unreadSorts);
+        return { ...b, state: 'FOUND', sortOrder: minUnread - 1 };
       }
-      return next;
+      return { ...b, state };
     }));
   };
 
