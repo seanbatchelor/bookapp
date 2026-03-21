@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import React, { useRef, useEffect, useLayoutEffect, useCallback, useState } from 'react';
 import { View, TextInput, Pressable, Animated, GestureResponderEvent, LayoutChangeEvent } from 'react-native';
 import { Text } from './Text';
 import { Plus, Check, ArrowDown, Loader2 } from 'lucide-react-native';
@@ -12,6 +12,13 @@ type BookItemRowProps = {
   onPressIn?: (e: GestureResponderEvent) => void;
   onPressOut?: (e: GestureResponderEvent) => void;
 };
+
+const FRESH_MOVE_MS = 600;
+const EXPAND_IN_MS = 220;
+
+function isFreshListArrival(movedAt: number | undefined): boolean {
+  return movedAt != null && Date.now() - movedAt < FRESH_MOVE_MS;
+}
 
 export const BookItemRow = ({ item, onPress, onPressIn, onPressOut }: BookItemRowProps) => {
   const { updateBookText, lookupBook, markAsRead, setBookState } = useBooks();
@@ -27,6 +34,10 @@ export const BookItemRow = ({ item, onPress, onPressIn, onPressOut }: BookItemRo
   const naturalHeightRef = useRef(0);
   const rowCollapseActiveRef = useRef(false);
   const rowContentMeasureRef = useRef<View>(null);
+  const rowExpandPendingRef = useRef(false);
+  const rowExpandStartedRef = useRef(false);
+  const rowExpandAnimatingRef = useRef(false);
+  const rowExpandKeyRef = useRef<string | null>(null);
   const [rowLayoutReady, setRowLayoutReady] = useState(false);
 
   useEffect(() => {
@@ -66,15 +77,19 @@ export const BookItemRow = ({ item, onPress, onPressIn, onPressOut }: BookItemRo
     }
   }, [item.state]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setRowLayoutReady(false);
     naturalHeightRef.current = 0;
     rowHeightAnim.setValue(0);
     rowContentOpacity.stopAnimation();
     rowContentOpacity.setValue(1);
+    rowExpandPendingRef.current = false;
+    rowExpandStartedRef.current = false;
+    rowExpandAnimatingRef.current = false;
+    rowExpandKeyRef.current = null;
   }, [item.id, rowHeightAnim, rowContentOpacity]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     checkboxPendingRef.current = false;
     const checked = item.state === 'READ';
     const v = checked ? 1 : 0;
@@ -83,17 +98,51 @@ export const BookItemRow = ({ item, onPress, onPressIn, onPressOut }: BookItemRo
     checkboxFill.setValue(v);
     checkmarkOpacity.setValue(v);
     rowCollapseActiveRef.current = false;
-    rowHeightAnim.stopAnimation();
-    rowContentOpacity.stopAnimation();
-    rowContentOpacity.setValue(1);
-    const h = naturalHeightRef.current;
-    if (h > 0) {
-      rowHeightAnim.setValue(h);
-    } else {
-      setRowLayoutReady(false);
-      rowHeightAnim.setValue(0);
+
+    const fresh = isFreshListArrival(item.movedAt);
+    const expandKey = `${item.id}:${item.movedAt ?? ''}`;
+
+    if (fresh && rowExpandAnimatingRef.current) {
+      return;
     }
-  }, [item.id, item.state, rowHeightAnim, rowContentOpacity]);
+
+    if (fresh) {
+      const isNewExpandKey = rowExpandKeyRef.current !== expandKey;
+      if (isNewExpandKey) {
+        rowExpandKeyRef.current = expandKey;
+        rowExpandPendingRef.current = true;
+        rowExpandStartedRef.current = false;
+        rowHeightAnim.stopAnimation();
+        rowContentOpacity.stopAnimation();
+        rowContentOpacity.setValue(0);
+        rowHeightAnim.setValue(0);
+        setRowLayoutReady(false);
+        naturalHeightRef.current = 0;
+      } else if (!rowExpandStartedRef.current) {
+        rowHeightAnim.stopAnimation();
+        rowContentOpacity.stopAnimation();
+        rowContentOpacity.setValue(0);
+        rowHeightAnim.setValue(0);
+        setRowLayoutReady(false);
+        naturalHeightRef.current = 0;
+      }
+    } else {
+      rowExpandKeyRef.current = null;
+      rowExpandPendingRef.current = false;
+      rowExpandStartedRef.current = false;
+      rowExpandAnimatingRef.current = false;
+      rowHeightAnim.stopAnimation();
+      rowContentOpacity.stopAnimation();
+      rowContentOpacity.setValue(1);
+      const h = naturalHeightRef.current;
+      if (h > 0) {
+        rowHeightAnim.setValue(h);
+      } else {
+        setRowLayoutReady(false);
+        rowHeightAnim.setValue(0);
+      }
+    }
+  }, [item.id, item.state, item.movedAt, rowHeightAnim, rowContentOpacity, checkboxFill, checkmarkOpacity]);
 
   useEffect(() => {
     return () => {
@@ -112,6 +161,39 @@ export const BookItemRow = ({ item, onPress, onPressIn, onPressOut }: BookItemRo
       if (rowCollapseActiveRef.current) return;
 
       const h = e.nativeEvent.layout.height;
+
+      if (
+        rowExpandPendingRef.current &&
+        !rowExpandStartedRef.current &&
+        h > 0 &&
+        isFreshListArrival(item.movedAt)
+      ) {
+        rowExpandStartedRef.current = true;
+        rowExpandPendingRef.current = false;
+        rowExpandAnimatingRef.current = true;
+        naturalHeightRef.current = h;
+        setRowLayoutReady(true);
+        rowHeightAnim.setValue(0);
+        rowContentOpacity.setValue(0);
+        Animated.parallel([
+          Animated.timing(rowHeightAnim, {
+            toValue: h,
+            duration: EXPAND_IN_MS,
+            useNativeDriver: false,
+          }),
+          Animated.timing(rowContentOpacity, {
+            toValue: 1,
+            duration: EXPAND_IN_MS,
+            useNativeDriver: false,
+          }),
+        ]).start(() => {
+          rowExpandAnimatingRef.current = false;
+        });
+        return;
+      }
+
+      if (rowExpandAnimatingRef.current) return;
+
       if (h > 0) {
         naturalHeightRef.current = h;
       }
@@ -129,7 +211,7 @@ export const BookItemRow = ({ item, onPress, onPressIn, onPressOut }: BookItemRo
         rowHeightAnim.setValue(h);
       }
     },
-    [rowHeightAnim, rowLayoutReady]
+    [item.movedAt, rowHeightAnim, rowContentOpacity, rowLayoutReady]
   );
 
   const handleCheckbox = useCallback(() => {

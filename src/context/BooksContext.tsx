@@ -126,9 +126,9 @@ export const BooksProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const markAsRead = (id: string) => {
-    const sortOrder = Date.now();
+    const ts = Date.now();
     setBooks(prev => prev.map(b => 
-      b.id === id ? { ...b, state: 'READ', sortOrder } : b
+      b.id === id ? { ...b, state: 'READ', sortOrder: ts, movedAt: ts } : b
     ));
   };
 
@@ -145,7 +145,12 @@ export const BooksProvider = ({ children }: { children: ReactNode }) => {
           .map(x => x.sortOrder ?? 0);
         const minUnread =
           unreadSorts.length === 0 ? 0 : Math.min(...unreadSorts);
-        return { ...b, state: 'FOUND', sortOrder: minUnread - 1 };
+        return {
+          ...b,
+          state: 'FOUND',
+          sortOrder: minUnread - 1,
+          movedAt: Date.now(),
+        };
       }
       return { ...b, state };
     }));
