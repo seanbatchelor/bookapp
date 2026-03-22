@@ -69,6 +69,7 @@ export const BooksProvider = ({ children }: { children: ReactNode }) => {
           state: 'FOUND', 
           resolvedTitle: result.book.title,
           resolvedAuthor: result.book.author,
+          resolvedYear: result.book.year,
           options: undefined
         };
       } else if (result.type === 'multi') {
@@ -100,6 +101,7 @@ export const BooksProvider = ({ children }: { children: ReactNode }) => {
             state: 'FOUND', 
             resolvedTitle: result.book.title,
             resolvedAuthor: result.book.author,
+            resolvedYear: result.book.year,
             options: undefined
           };
         } else if (result.type === 'multi') {
@@ -119,6 +121,7 @@ export const BooksProvider = ({ children }: { children: ReactNode }) => {
             state: 'FOUND', 
             resolvedTitle: book.title,
             resolvedAuthor: book.author,
+            resolvedYear: book.year,
             options: undefined 
           }
         : b

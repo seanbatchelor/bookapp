@@ -11,6 +11,7 @@ export type BookState =
 export type BookData = {
   title: string;
   author: string;
+  year?: string;
 };
 
 export type BookItem = {
@@ -21,6 +22,7 @@ export type BookItem = {
   originalText: string;
   resolvedTitle?: string;
   resolvedAuthor?: string;
+  resolvedYear?: string;
   options?: BookData[];
 };
 

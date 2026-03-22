@@ -15,6 +15,7 @@ export async function googleBooksLookup(query: string): Promise<LookupResult> {
     const books = data.items.map((item: any) => ({
       title: item.volumeInfo.title,
       author: item.volumeInfo.authors?.[0] ?? 'Unknown Author',
+      year: item.volumeInfo.publishedDate?.split('-')[0],
     }));
 
     if (books.length === 1) {

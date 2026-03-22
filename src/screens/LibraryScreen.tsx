@@ -1,24 +1,22 @@
-import React, { useMemo, useRef, useState, useCallback } from 'react';
+import React, { useMemo, useRef, useState, useCallback } from "react";
+import { FlatList, Platform, Pressable, View } from "react-native";
 import {
-  FlatList,
-  Platform,
-  Pressable,
-  View,
-} from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text } from '../components/Text';
-import { AlphabetScrubber } from '../components/AlphabetScrubber';
-import { useBooks } from '../context/BooksContext';
-import { BookItem } from '../types/book';
-import { theme, green } from '../theme/colors';
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import { Text } from "../components/Text";
+import { AlphabetScrubber } from "../components/AlphabetScrubber";
+import { useBooks } from "../context/BooksContext";
+import { BookItem } from "../types/book";
+import { theme, green } from "../theme/colors";
 
-type Tab = 'Books' | 'Authors';
+type Tab = "Books" | "Authors";
 
 // ─── Data helpers ─────────────────────────────────────────────────────────────
 
-type BookRow   = { type: 'book-item';     book: BookItem; key: string };
-type AuthorRow = { type: 'author-item';   author: string; key: string };
-type HeaderRow = { type: 'letter-header'; letter: string; key: string };
+type BookRow = { type: "book-item"; book: BookItem; key: string };
+type AuthorRow = { type: "author-item"; author: string; key: string };
+type HeaderRow = { type: "letter-header"; letter: string; key: string };
 
 type SectionRow = BookRow | AuthorRow | HeaderRow;
 
@@ -27,24 +25,28 @@ function buildBookSections(books: BookItem[]): {
   letterIndexMap: Record<string, number>;
 } {
   const resolved = books
-    .filter(b => (b.state === 'FOUND' || b.state === 'READ') && b.resolvedTitle)
+    .filter(
+      (b) => (b.state === "FOUND" || b.state === "READ") && b.resolvedTitle,
+    )
     .slice()
     .sort((a, b) =>
-      (a.resolvedTitle ?? '').localeCompare(b.resolvedTitle ?? '', undefined, { sensitivity: 'base' })
+      (a.resolvedTitle ?? "").localeCompare(b.resolvedTitle ?? "", undefined, {
+        sensitivity: "base",
+      }),
     );
 
   const sections: SectionRow[] = [];
   const letterIndexMap: Record<string, number> = {};
-  let lastLetter = '';
+  let lastLetter = "";
 
   for (const book of resolved) {
-    const letter = (book.resolvedTitle ?? '').charAt(0).toUpperCase();
+    const letter = (book.resolvedTitle ?? "").charAt(0).toUpperCase();
     if (letter !== lastLetter) {
       letterIndexMap[letter] = sections.length;
-      sections.push({ type: 'letter-header', letter, key: `header-${letter}` });
+      sections.push({ type: "letter-header", letter, key: `header-${letter}` });
       lastLetter = letter;
     }
-    sections.push({ type: 'book-item', book, key: `book-${book.id}` });
+    sections.push({ type: "book-item", book, key: `book-${book.id}` });
   }
 
   return { sections, letterIndexMap };
@@ -57,23 +59,26 @@ function buildAuthorSections(books: BookItem[]): {
   const authors = [
     ...new Set(
       books
-        .filter(b => (b.state === 'FOUND' || b.state === 'READ') && b.resolvedAuthor)
-        .map(b => b.resolvedAuthor as string)
+        .filter(
+          (b) =>
+            (b.state === "FOUND" || b.state === "READ") && b.resolvedAuthor,
+        )
+        .map((b) => b.resolvedAuthor as string),
     ),
-  ].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+  ].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
 
   const sections: SectionRow[] = [];
   const letterIndexMap: Record<string, number> = {};
-  let lastLetter = '';
+  let lastLetter = "";
 
   for (const author of authors) {
     const letter = author.charAt(0).toUpperCase();
     if (letter !== lastLetter) {
       letterIndexMap[letter] = sections.length;
-      sections.push({ type: 'letter-header', letter, key: `header-${letter}` });
+      sections.push({ type: "letter-header", letter, key: `header-${letter}` });
       lastLetter = letter;
     }
-    sections.push({ type: 'author-item', author, key: `author-${author}` });
+    sections.push({ type: "author-item", author, key: `author-${author}` });
   }
 
   return { sections, letterIndexMap };
@@ -107,8 +112,6 @@ function BookRow({ book }: { book: BookItem }) {
       style={{
         paddingHorizontal: 16,
         paddingVertical: 14,
-        borderBottomWidth: 1,
-        borderBottomColor: theme.border,
       }}
     >
       <Text
@@ -120,7 +123,7 @@ function BookRow({ book }: { book: BookItem }) {
       {book.resolvedAuthor ? (
         <Text
           className="font-regular"
-          style={{ fontSize: 14, color: theme.subtle, marginTop: 2 }}
+          style={{ fontSize: 14, color: theme.foreground, marginTop: 2 }}
         >
           {book.resolvedAuthor}
         </Text>
@@ -135,8 +138,6 @@ function AuthorRow({ author }: { author: string }) {
       style={{
         paddingHorizontal: 16,
         paddingVertical: 14,
-        borderBottomWidth: 1,
-        borderBottomColor: theme.border,
       }}
     >
       <Text
@@ -154,18 +155,19 @@ function AuthorRow({ author }: { author: string }) {
 export default function LibraryScreen() {
   const insets = useSafeAreaInsets();
   const { books } = useBooks();
-  const [activeTab, setActiveTab] = useState<Tab>('Books');
+  const [activeTab, setActiveTab] = useState<Tab>("Books");
   const listRef = useRef<FlatList<SectionRow>>(null);
 
   const { sections, letterIndexMap } = useMemo(() => {
-    if (activeTab === 'Books') return buildBookSections(books);
+    if (activeTab === "Books") return buildBookSections(books);
     return buildAuthorSections(books);
   }, [books, activeTab]);
 
   const renderItem = useCallback(({ item }: { item: SectionRow }) => {
-    if (item.type === 'letter-header') return <LetterHeader letter={item.letter} />;
-    if (item.type === 'book-item')     return <BookRow book={item.book} />;
-    if (item.type === 'author-item')   return <AuthorRow author={item.author} />;
+    if (item.type === "letter-header")
+      return <LetterHeader letter={item.letter} />;
+    if (item.type === "book-item") return <BookRow book={item.book} />;
+    if (item.type === "author-item") return <AuthorRow author={item.author} />;
     return null;
   }, []);
 
@@ -177,17 +179,20 @@ export default function LibraryScreen() {
   const listPaddingBottom = insets.bottom + 72;
 
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} className="flex-1 bg-background">
+    <SafeAreaView
+      edges={["top", "left", "right"]}
+      className="flex-1 bg-background"
+    >
       {/* Tab bar */}
       <View
         style={{
-          flexDirection: 'row',
+          flexDirection: "row",
           borderBottomWidth: 1,
           borderBottomColor: theme.border,
           backgroundColor: theme.background,
         }}
       >
-        {(['Books', 'Authors'] as Tab[]).map((tab) => {
+        {(["Books", "Authors"] as Tab[]).map((tab) => {
           const isActive = activeTab === tab;
           return (
             <Pressable
@@ -195,14 +200,14 @@ export default function LibraryScreen() {
               onPress={() => handleTabChange(tab)}
               style={{
                 flex: 1,
-                alignItems: 'center',
+                alignItems: "center",
                 paddingVertical: 14,
                 borderBottomWidth: 2,
-                borderBottomColor: isActive ? theme.primaryDark : 'transparent',
+                borderBottomColor: isActive ? theme.primaryDark : "transparent",
               }}
             >
               <Text
-                className={isActive ? 'font-semibold' : 'font-medium'}
+                className={isActive ? "font-semibold" : "font-medium"}
                 style={{
                   fontSize: 15,
                   color: isActive ? green[900] : theme.subtle,
@@ -216,7 +221,7 @@ export default function LibraryScreen() {
       </View>
 
       {/* List + scrubber */}
-      <View style={{ flex: 1, position: 'relative' }}>
+      <View style={{ flex: 1, position: "relative" }}>
         <FlatList
           ref={listRef}
           style={{ flex: 1 }}
@@ -225,12 +230,16 @@ export default function LibraryScreen() {
           initialNumToRender={24}
           maxToRenderPerBatch={16}
           windowSize={11}
-          {...(Platform.OS === 'ios'
-            ? { contentInsetAdjustmentBehavior: 'never' as const }
+          {...(Platform.OS === "ios"
+            ? { contentInsetAdjustmentBehavior: "never" as const }
             : {})}
           renderItem={renderItem}
           keyExtractor={(item) => item.key}
-          contentContainerStyle={{ paddingRight: 32, flexGrow: 1, paddingBottom: listPaddingBottom }}
+          contentContainerStyle={{
+            paddingRight: 32,
+            flexGrow: 1,
+            paddingBottom: listPaddingBottom,
+          }}
           onScrollToIndexFailed={(info) => {
             // Fall back to offset-based scroll if index isn't measured yet
             listRef.current?.scrollToOffset({
@@ -239,11 +248,18 @@ export default function LibraryScreen() {
             });
           }}
           ListEmptyComponent={
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 64 }}>
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+                paddingVertical: 64,
+              }}
+            >
               <Text className="text-muted text-center text-base">
-                {activeTab === 'Books'
-                  ? 'No books yet.\nAdd some on the List page.'
-                  : 'No authors yet.\nAdd books on the List page.'}
+                {activeTab === "Books"
+                  ? "No books yet.\nAdd some on the List page."
+                  : "No authors yet.\nAdd books on the List page."}
               </Text>
             </View>
           }
@@ -255,7 +271,6 @@ export default function LibraryScreen() {
           itemCount={sections.length}
         />
       </View>
-
     </SafeAreaView>
   );
 }
