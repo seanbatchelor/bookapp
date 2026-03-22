@@ -1,8 +1,12 @@
 import React, { useMemo, useRef, useState, useCallback } from 'react';
-import { View, FlatList, Pressable } from 'react-native';
+import {
+  FlatList,
+  Platform,
+  Pressable,
+  View,
+} from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../components/Text';
-import { FloatingNav } from '../components/FloatingNav';
 import { AlphabetScrubber } from '../components/AlphabetScrubber';
 import { useBooks } from '../context/BooksContext';
 import { BookItem } from '../types/book';
@@ -49,19 +53,19 @@ function buildAuthorSections(books: BookItem[]): {
   sections: SectionRow[];
   letterIndexMap: Record<string, number>;
 } {
-  const uniqueAuthors = Array.from(
-    new Set(
+  const authors = [
+    ...new Set(
       books
         .filter(b => (b.state === 'FOUND' || b.state === 'READ') && b.resolvedAuthor)
         .map(b => b.resolvedAuthor as string)
-    )
-  ).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    ),
+  ].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
 
   const sections: SectionRow[] = [];
   const letterIndexMap: Record<string, number> = {};
   let lastLetter = '';
 
-  for (const author of uniqueAuthors) {
+  for (const author of authors) {
     const letter = author.charAt(0).toUpperCase();
     if (letter !== lastLetter) {
       letterIndexMap[letter] = sections.length;
@@ -74,7 +78,7 @@ function buildAuthorSections(books: BookItem[]): {
   return { sections, letterIndexMap };
 }
 
-// ─── Row components ────────────────────────────────────────────────────────────
+// ─── Row components ───────────────────────────────────────────────────────────
 
 function LetterHeader({ letter }: { letter: string }) {
   return (
@@ -83,11 +87,12 @@ function LetterHeader({ letter }: { letter: string }) {
         paddingHorizontal: 16,
         paddingTop: 20,
         paddingBottom: 4,
+        backgroundColor: '#C3EFD3',
       }}
     >
       <Text
         className="font-semibold"
-        style={{ fontSize: 13, color: '#298E4E', letterSpacing: 0.5 }}
+        style={{ fontSize: 13, color: '#237040', letterSpacing: 0.5 }}
       >
         {letter}
       </Text>
@@ -100,7 +105,7 @@ function BookRow({ book }: { book: BookItem }) {
     <View
       style={{
         paddingHorizontal: 16,
-        paddingVertical: 12,
+        paddingVertical: 14,
         borderBottomWidth: 1,
         borderBottomColor: '#94E1B0',
       }}
@@ -113,7 +118,8 @@ function BookRow({ book }: { book: BookItem }) {
       </Text>
       {book.resolvedAuthor ? (
         <Text
-          style={{ fontSize: 14, color: '#404040', marginTop: 2, lineHeight: 18 }}
+          className="font-regular"
+          style={{ fontSize: 14, color: '#404040', marginTop: 2 }}
         >
           {book.resolvedAuthor}
         </Text>
@@ -161,11 +167,6 @@ export default function LibraryScreen() {
     if (item.type === 'author-item')   return <AuthorRow author={item.author} />;
     return null;
   }, []);
-
-  const getItemLayout = useCallback(
-    (_: any, index: number) => ({ length: 62, offset: 62 * index, index }),
-    []
-  );
 
   const handleTabChange = useCallback((tab: Tab) => {
     setActiveTab(tab);
@@ -219,9 +220,15 @@ export default function LibraryScreen() {
           ref={listRef}
           style={{ flex: 1 }}
           data={sections}
+          removeClippedSubviews={false}
+          initialNumToRender={24}
+          maxToRenderPerBatch={16}
+          windowSize={11}
+          {...(Platform.OS === 'ios'
+            ? { contentInsetAdjustmentBehavior: 'never' as const }
+            : {})}
           renderItem={renderItem}
           keyExtractor={(item) => item.key}
-          getItemLayout={getItemLayout}
           contentContainerStyle={{ paddingRight: 32, flexGrow: 1, paddingBottom: listPaddingBottom }}
           onScrollToIndexFailed={(info) => {
             // Fall back to offset-based scroll if index isn't measured yet
@@ -248,7 +255,6 @@ export default function LibraryScreen() {
         />
       </View>
 
-      <FloatingNav />
     </SafeAreaView>
   );
 }

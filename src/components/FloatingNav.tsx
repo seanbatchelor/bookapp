@@ -1,74 +1,56 @@
-import React from 'react';
-import { View, Pressable } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Text } from './Text';
-import { RootStackParamList } from '../types/navigation';
-
-type Nav = NativeStackNavigationProp<RootStackParamList>;
+import React from "react";
+import { View, Pressable } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Text } from "./Text";
+import { RootStackParamList } from "../types/navigation";
 
 const ITEMS: { label: string; route: keyof RootStackParamList }[] = [
-  { label: 'List', route: 'Home' },
-  { label: 'Library', route: 'Library' },
+  { label: "List", route: "Home" },
+  { label: "Library", route: "Library" },
 ];
 
-export function FloatingNav() {
+type FloatingNavProps = {
+  currentRouteName: keyof RootStackParamList;
+  onNavigateToTab: (route: keyof RootStackParamList) => void;
+};
+
+export function FloatingNav({
+  currentRouteName,
+  onNavigateToTab,
+}: FloatingNavProps) {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<Nav>();
-  const route = useRoute();
 
   return (
     <View
-      style={{
-        position: 'absolute',
-        bottom: 12 + insets.bottom,
-        left: 24,
-        flexDirection: 'row',
-        borderRadius: 999,
-        overflow: 'hidden',
-        backgroundColor: '#171717',
-      }}
+      className="absolute left-6 flex-row rounded-full overflow-hidden bg-primary"
+      style={{ bottom: 12 + insets.bottom }}
     >
       {ITEMS.map((item, index) => {
-        const isActive = route.name === item.route;
+        const isActive = currentRouteName === item.route;
         const isLast = index === ITEMS.length - 1;
 
         return (
           <React.Fragment key={item.route}>
             <Pressable
               onPress={() => {
-                if (!isActive) {
-                  navigation.navigate(item.route);
-                }
+                if (!isActive) onNavigateToTab(item.route);
               }}
-              style={({ pressed }) => ({
-                paddingHorizontal: 20,
-                paddingVertical: 14,
-                opacity: pressed ? 0.7 : 1,
-              })}
+              className="px-6 py-3.5"
+              style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
             >
               <Text
-                className={isActive ? 'font-semibold' : 'font-medium'}
-                style={{
-                  color: isActive ? '#E2F8EA' : 'rgba(226,248,234,0.45)',
-                  fontSize: 15,
-                  lineHeight: 20,
-                }}
+                className={
+                  isActive
+                    ? "font-semibold text-white"
+                    : "font-medium text-white/50"
+                }
+                style={{ fontSize: 15, lineHeight: 20 }}
               >
                 {item.label}
               </Text>
             </Pressable>
 
-            {!isLast && (
-              <View
-                style={{
-                  width: 1,
-                  marginVertical: 12,
-                  backgroundColor: 'rgba(226,248,234,0.2)',
-                }}
-              />
-            )}
+            {!isLast && <View className="w-px my-3 bg-white/25" />}
           </React.Fragment>
         );
       })}
