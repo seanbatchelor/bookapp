@@ -2,22 +2,20 @@ import React from "react";
 import { View, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "./Text";
-import { RootStackParamList } from "../types/navigation";
 
-const ITEMS: { label: string; route: keyof RootStackParamList }[] = [
-  { label: "List", route: "Home" },
-  { label: "Library", route: "Library" },
+type Tab = "Home" | "Library";
+
+const ITEMS: { label: string; tab: Tab }[] = [
+  { label: "List", tab: "Home" },
+  { label: "Library", tab: "Library" },
 ];
 
 type FloatingNavProps = {
-  currentRouteName: keyof RootStackParamList;
-  onNavigateToTab: (route: keyof RootStackParamList) => void;
+  activeTab: Tab;
+  onNavigateToTab: (tab: Tab) => void;
 };
 
-export function FloatingNav({
-  currentRouteName,
-  onNavigateToTab,
-}: FloatingNavProps) {
+export function FloatingNav({ activeTab, onNavigateToTab }: FloatingNavProps) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -26,14 +24,14 @@ export function FloatingNav({
       style={{ bottom: 12 + insets.bottom }}
     >
       {ITEMS.map((item, index) => {
-        const isActive = currentRouteName === item.route;
+        const isActive = activeTab === item.tab;
         const isLast = index === ITEMS.length - 1;
 
         return (
-          <React.Fragment key={item.route}>
+          <React.Fragment key={item.tab}>
             <Pressable
               onPress={() => {
-                if (!isActive) onNavigateToTab(item.route);
+                if (!isActive) onNavigateToTab(item.tab);
               }}
               className="px-6 py-3.5"
               style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
