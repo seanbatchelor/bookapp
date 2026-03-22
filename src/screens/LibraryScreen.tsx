@@ -1,5 +1,11 @@
 import React, { useMemo, useRef, useState, useCallback } from "react";
-import { FlatList, Platform, Pressable, View } from "react-native";
+import {
+  FlatList,
+  LayoutChangeEvent,
+  Platform,
+  Pressable,
+  View,
+} from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -176,6 +182,7 @@ export default function LibraryScreen() {
     listRef.current?.scrollToOffset({ offset: 0, animated: false });
   }, []);
 
+  const [tabBarHeight, setTabBarHeight] = useState(0);
   const listPaddingBottom = insets.bottom + 72;
 
   return (
@@ -183,45 +190,8 @@ export default function LibraryScreen() {
       edges={["top", "left", "right"]}
       className="flex-1 bg-background"
     >
-      {/* Tab bar */}
-      <View
-        style={{
-          flexDirection: "row",
-          borderBottomWidth: 1,
-          borderBottomColor: theme.border,
-          backgroundColor: theme.background,
-        }}
-      >
-        {(["Books", "Authors"] as Tab[]).map((tab) => {
-          const isActive = activeTab === tab;
-          return (
-            <Pressable
-              key={tab}
-              onPress={() => handleTabChange(tab)}
-              style={{
-                flex: 1,
-                alignItems: "center",
-                paddingVertical: 14,
-                borderBottomWidth: 2,
-                borderBottomColor: isActive ? theme.primaryDark : "transparent",
-              }}
-            >
-              <Text
-                className={isActive ? "font-semibold" : "font-medium"}
-                style={{
-                  fontSize: 15,
-                  color: isActive ? green[900] : theme.subtle,
-                }}
-              >
-                {tab}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      {/* List + scrubber */}
-      <View style={{ flex: 1, position: "relative" }}>
+      {/* List + scrubber — tab pill floats over the top */}
+      <View style={{ flex: 1 }}>
         <FlatList
           ref={listRef}
           style={{ flex: 1 }}
@@ -236,6 +206,7 @@ export default function LibraryScreen() {
           renderItem={renderItem}
           keyExtractor={(item) => item.key}
           contentContainerStyle={{
+            paddingTop: tabBarHeight,
             paddingRight: 32,
             flexGrow: 1,
             paddingBottom: listPaddingBottom,
@@ -270,6 +241,66 @@ export default function LibraryScreen() {
           letterIndexMap={letterIndexMap}
           itemCount={sections.length}
         />
+
+        {/* Tab pill — floats above the list */}
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            alignItems: "center",
+            paddingVertical: 10,
+          }}
+          onLayout={(e: LayoutChangeEvent) => {
+            const h = e.nativeEvent.layout.height;
+            if (h > 0) setTabBarHeight(h);
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              borderRadius: 999,
+              borderWidth: 1.5,
+              borderColor: theme.primaryDark,
+              backgroundColor: theme.background,
+              padding: 0,
+            }}
+          >
+            {(["Books", "Authors"] as Tab[]).map((tab) => {
+              const isActive = activeTab === tab;
+              return (
+                <Pressable
+                  key={tab}
+                  onPress={() => handleTabChange(tab)}
+                  style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
+                >
+                  <View
+                    style={{
+                      paddingHorizontal: 20,
+                      paddingVertical: 10,
+                      borderRadius: 999,
+                      backgroundColor: isActive
+                        ? theme.primaryDark
+                        : "transparent",
+                    }}
+                  >
+                    <Text
+                      className="font-medium"
+                      style={{
+                        fontSize: 15,
+                        lineHeight: 20,
+                        color: isActive ? "#FFFFFF" : theme.primaryDark,
+                      }}
+                    >
+                      {tab}
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
       </View>
     </SafeAreaView>
   );
