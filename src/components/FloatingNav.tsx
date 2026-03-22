@@ -1,7 +1,8 @@
-import React from "react";
-import { View, Pressable } from "react-native";
+import React, { useState } from "react";
+import { LayoutChangeEvent, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "./Text";
+import { DitherPill } from "./ui/DitherPill";
 
 type Tab = "Home" | "Library";
 
@@ -17,41 +18,59 @@ type FloatingNavProps = {
 
 export function FloatingNav({ activeTab, onNavigateToTab }: FloatingNavProps) {
   const insets = useSafeAreaInsets();
+  const [pillSize, setPillSize] = useState<{ width: number; height: number } | null>(null);
+
+  const onPillLayout = (e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    if (width > 0 && height > 0) setPillSize({ width, height });
+  };
+
+  // FAB: bottom: 12 + insets.bottom, height 56 → centre at +28 from bottom.
+  // Nav pill with py-3.5 is ~48px tall → centre at +24. Offset by +4 to align centres.
+  const bottom = 16 + insets.bottom;
 
   return (
-    <View
-      className="absolute left-6 flex-row rounded-full overflow-hidden bg-primary"
-      style={{ bottom: 12 + insets.bottom }}
-    >
-      {ITEMS.map((item, index) => {
-        const isActive = activeTab === item.tab;
-        const isLast = index === ITEMS.length - 1;
+    <View style={{ position: "absolute", bottom, left: 16 }}>
+      {pillSize !== null && (
+        <View style={{ position: "absolute", top: 10, left: 5 }}>
+          <DitherPill width={pillSize.width} height={pillSize.height} />
+        </View>
+      )}
 
-        return (
-          <React.Fragment key={item.tab}>
-            <Pressable
-              onPress={() => {
-                if (!isActive) onNavigateToTab(item.tab);
-              }}
-              className="px-6 py-3.5"
-              style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
-            >
-              <Text
-                className={
-                  isActive
-                    ? "font-semibold text-white"
-                    : "font-medium text-white/50"
-                }
-                style={{ fontSize: 15, lineHeight: 20 }}
+      <View
+        onLayout={onPillLayout}
+        className="flex-row rounded-full overflow-hidden bg-primary"
+      >
+        {ITEMS.map((item, index) => {
+          const isActive = activeTab === item.tab;
+          const isLast = index === ITEMS.length - 1;
+
+          return (
+            <React.Fragment key={item.tab}>
+              <Pressable
+                onPress={() => {
+                  if (!isActive) onNavigateToTab(item.tab);
+                }}
+                className="px-6 py-3.5"
+                style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
               >
-                {item.label}
-              </Text>
-            </Pressable>
+                <Text
+                  className={isActive ? "font-semibold" : "font-medium"}
+                  style={{
+                    fontSize: 15,
+                    lineHeight: 20,
+                    color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.5)",
+                  }}
+                >
+                  {item.label}
+                </Text>
+              </Pressable>
 
-            {!isLast && <View className="w-px my-3 bg-white/25" />}
-          </React.Fragment>
-        );
-      })}
+              {!isLast && <View className="w-px my-3 bg-white/25" />}
+            </React.Fragment>
+          );
+        })}
+      </View>
     </View>
   );
 }
