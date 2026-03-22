@@ -13,6 +13,7 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { theme } from "../theme/colors";
 import { useBooks } from "../context/BooksContext";
 import { SwipeableBookItem } from "../components/SwipeableBookItem";
 import { ItemSheet } from "../components/ItemSheet";
@@ -86,7 +87,7 @@ export default function HomeScreen() {
               marginTop: 12,
               marginBottom: -20,
               borderTopWidth: 1,
-              borderTopColor: "#5EC986",
+              borderTopColor: theme.border,
             }}
           >
             <DitherFade direction="up" />
@@ -151,7 +152,7 @@ export default function HomeScreen() {
         </View>
         <Pressable
           className="w-14 h-14 rounded-full items-center justify-center"
-          style={{ backgroundColor: "#298E4E" }}
+          style={{ backgroundColor: theme.primaryDark }}
           onPress={addBook}
         >
           <Text className="text-background text-3xl">+</Text>

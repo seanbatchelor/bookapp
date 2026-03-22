@@ -534,9 +534,9 @@ export const BookItemRow = ({ item, onPress, onPressIn, onPressOut }: BookItemRo
           {showQuestion && (
             <View
               className="w-7 h-7 rounded-full mr-3 items-center justify-center"
-              style={{ borderWidth: 2.5, borderColor: '#37AE63' }}
+              style={{ borderWidth: 2.5, borderColor: theme.primary }}
             >
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#37AE63' }}>?</Text>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: theme.primary }}>?</Text>
             </View>
           )}
           {showNotFound && (

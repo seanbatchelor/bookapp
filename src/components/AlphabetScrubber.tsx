@@ -7,6 +7,7 @@ import {
   type LayoutRectangle,
 } from "react-native";
 import { Text } from "./Text";
+import { green } from "../theme/colors";
 
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
@@ -133,7 +134,7 @@ export function AlphabetScrubber({
               style={{
                 fontSize: 13,
                 lineHeight: 16,
-                color: hasEntries ? "#237040" : "rgba(35,112,64,0.35)",
+                color: hasEntries ? green[700] : green[700] + '59', // 59 ≈ 35% opacity
                 fontWeight: "700",
               }}
             >

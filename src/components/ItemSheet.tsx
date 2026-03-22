@@ -4,7 +4,7 @@ import { Text } from './Text';
 import { useBooks } from '../context/BooksContext';
 import { BookData } from '../types/book';
 import { X } from 'lucide-react-native';
-import { theme } from '../theme/colors';
+import { theme, green } from '../theme/colors';
 
 type ItemSheetProps = {
   bookId: string;
@@ -129,7 +129,7 @@ export function ItemSheet({ bookId, onClose }: ItemSheetProps) {
       <TextInput
         className="bg-surface border border-border rounded-lg px-4 py-3 text-foreground text-base mb-4"
         placeholder="Enter a different title..."
-        placeholderTextColor="#166534"
+        placeholderTextColor={green[700]}
         value={retryQuery}
         onChangeText={setRetryQuery}
         autoFocus

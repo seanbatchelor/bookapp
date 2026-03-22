@@ -60,7 +60,7 @@ export const SwipeableBookItem = ({ item, onPress }: SwipeableBookItemProps) => 
 
       {/* Top edge dither — dense at top, fading down */}
       <View style={{ position: 'absolute', top: 0, left: 0, right: 0 }} pointerEvents="none">
-        <DitherFade direction="up" height={16} color="#991b1b" background="#dc2626" />
+        <DitherFade direction="up" height={16} color={theme.dangerDark} background={theme.danger} />
       </View>
 
       <View style={{ position: 'absolute', right: 0, top: 0, bottom: 0 }} className="justify-center px-6">

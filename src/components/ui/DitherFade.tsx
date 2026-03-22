@@ -1,9 +1,10 @@
 import { useId } from 'react';
 import { View } from 'react-native';
 import Svg, { Rect, Defs, Pattern } from 'react-native-svg';
+import { green } from '../../theme/colors';
 
-const DEFAULT_COLOR = '#5EC986';
-const DEFAULT_BACKGROUND = '#C3EFD3';
+const DEFAULT_COLOR = green[400];
+const DEFAULT_BACKGROUND = green[200];
 
 type DitherFadeProps = {
   height?: number;

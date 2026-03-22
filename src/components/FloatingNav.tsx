@@ -3,7 +3,7 @@ import { LayoutChangeEvent, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "./Text";
 import { DitherPill } from "./ui/DitherPill";
-import { green } from "../theme";
+import { green } from "../theme/colors";
 
 type Tab = "Home" | "Library";
 

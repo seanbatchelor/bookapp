@@ -10,6 +10,7 @@ import { Text } from '../components/Text';
 import { AlphabetScrubber } from '../components/AlphabetScrubber';
 import { useBooks } from '../context/BooksContext';
 import { BookItem } from '../types/book';
+import { theme, green } from '../theme/colors';
 
 type Tab = 'Books' | 'Authors';
 
@@ -87,12 +88,12 @@ function LetterHeader({ letter }: { letter: string }) {
         paddingHorizontal: 16,
         paddingTop: 20,
         paddingBottom: 4,
-        backgroundColor: '#C3EFD3',
+        backgroundColor: theme.background,
       }}
     >
       <Text
         className="font-semibold"
-        style={{ fontSize: 13, color: '#237040', letterSpacing: 0.5 }}
+        style={{ fontSize: 13, color: green[700], letterSpacing: 0.5 }}
       >
         {letter}
       </Text>
@@ -107,19 +108,19 @@ function BookRow({ book }: { book: BookItem }) {
         paddingHorizontal: 16,
         paddingVertical: 14,
         borderBottomWidth: 1,
-        borderBottomColor: '#94E1B0',
+        borderBottomColor: theme.border,
       }}
     >
       <Text
         className="font-medium"
-        style={{ fontSize: 17, color: '#171717', lineHeight: 22 }}
+        style={{ fontSize: 17, color: theme.foreground, lineHeight: 22 }}
       >
         {book.resolvedTitle}
       </Text>
       {book.resolvedAuthor ? (
         <Text
           className="font-regular"
-          style={{ fontSize: 14, color: '#404040', marginTop: 2 }}
+          style={{ fontSize: 14, color: theme.subtle, marginTop: 2 }}
         >
           {book.resolvedAuthor}
         </Text>
@@ -135,12 +136,12 @@ function AuthorRow({ author }: { author: string }) {
         paddingHorizontal: 16,
         paddingVertical: 14,
         borderBottomWidth: 1,
-        borderBottomColor: '#94E1B0',
+        borderBottomColor: theme.border,
       }}
     >
       <Text
         className="font-medium"
-        style={{ fontSize: 17, color: '#171717', lineHeight: 22 }}
+        style={{ fontSize: 17, color: theme.foreground, lineHeight: 22 }}
       >
         {author}
       </Text>
@@ -182,8 +183,8 @@ export default function LibraryScreen() {
         style={{
           flexDirection: 'row',
           borderBottomWidth: 1,
-          borderBottomColor: '#94E1B0',
-          backgroundColor: '#C3EFD3',
+          borderBottomColor: theme.border,
+          backgroundColor: theme.background,
         }}
       >
         {(['Books', 'Authors'] as Tab[]).map((tab) => {
@@ -197,14 +198,14 @@ export default function LibraryScreen() {
                 alignItems: 'center',
                 paddingVertical: 14,
                 borderBottomWidth: 2,
-                borderBottomColor: isActive ? '#298E4E' : 'transparent',
+                borderBottomColor: isActive ? theme.primaryDark : 'transparent',
               }}
             >
               <Text
                 className={isActive ? 'font-semibold' : 'font-medium'}
                 style={{
                   fontSize: 15,
-                  color: isActive ? '#1D492D' : '#404040',
+                  color: isActive ? green[900] : theme.subtle,
                 }}
               >
                 {tab}

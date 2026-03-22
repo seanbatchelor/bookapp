@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 
-// Single source of truth — also used by src/theme.ts for inline styles
-const customGreen = require('./src/theme').green;
+// Single source of truth — shared with inline styles via src/theme/colors
+const { green: customGreen } = require('./src/theme/colors');
 
 const palettes = {
   primary: customGreen,

@@ -1,8 +1,9 @@
 import { useId } from 'react';
 import Svg, { Circle, ClipPath, Defs, Pattern, Rect } from 'react-native-svg';
+import { green } from '../../theme/colors';
 
-const DEFAULT_COLOR = '#298E4E';
-const DEFAULT_BACKGROUND = '#C3EFD3';
+const DEFAULT_COLOR = green[600];
+const DEFAULT_BACKGROUND = green[200];
 
 type DitherCircleProps = {
   size?: number;
