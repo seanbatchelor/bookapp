@@ -12,6 +12,7 @@ import {
 } from "react-native-safe-area-context";
 import { Text } from "../components/Text";
 import { AlphabetScrubber } from "../components/AlphabetScrubber";
+import { DitherStrip } from "../components/ui/DitherStrip";
 import { useBooks } from "../context/BooksContext";
 import { BookItem } from "../types/book";
 import { theme, green } from "../theme/colors";
@@ -241,6 +242,14 @@ export default function LibraryScreen() {
           letterIndexMap={letterIndexMap}
           itemCount={sections.length}
         />
+
+        {/* Dither strip — softens content scrolling under the top edge */}
+        <View
+          style={{ position: "absolute", top: 0, left: 0, right: 0 }}
+          pointerEvents="none"
+        >
+          <DitherStrip />
+        </View>
 
         {/* Tab pill — floats above the list */}
         <View

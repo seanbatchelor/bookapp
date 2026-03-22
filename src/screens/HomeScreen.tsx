@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { Text } from "../components/Text";
 import { DitherFade } from "../components/ui/DitherFade";
+import { DitherStrip } from "../components/ui/DitherStrip";
 import { DitherCircle } from "../components/ui/DitherCircle";
 import {
   SafeAreaView,
@@ -142,6 +143,14 @@ export default function HomeScreen() {
             </View>
           }
         />
+
+        {/* Dither strip — softens content scrolling under the top edge */}
+        <View
+          style={{ position: "absolute", top: 0, left: 0, right: 0 }}
+          pointerEvents="none"
+        >
+          <DitherStrip />
+        </View>
       </View>
 
       <View
