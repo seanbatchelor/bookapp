@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { LayoutChangeEvent, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "./Text";
 import { DitherPill } from "./ui/DitherPill";
+import { green } from "../theme";
 
 type Tab = "Home" | "Library";
 
@@ -18,7 +19,10 @@ type FloatingNavProps = {
 
 export function FloatingNav({ activeTab, onNavigateToTab }: FloatingNavProps) {
   const insets = useSafeAreaInsets();
-  const [pillSize, setPillSize] = useState<{ width: number; height: number } | null>(null);
+  const [pillSize, setPillSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
 
   const onPillLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
@@ -41,33 +45,41 @@ export function FloatingNav({ activeTab, onNavigateToTab }: FloatingNavProps) {
         onLayout={onPillLayout}
         className="flex-row rounded-full overflow-hidden bg-primary"
       >
-        {ITEMS.map((item, index) => {
+        {ITEMS.map((item) => {
           const isActive = activeTab === item.tab;
-          const isLast = index === ITEMS.length - 1;
 
           return (
-            <React.Fragment key={item.tab}>
-              <Pressable
-                onPress={() => {
-                  if (!isActive) onNavigateToTab(item.tab);
+            <Pressable
+              key={item.tab}
+              onPress={() => {
+                if (!isActive) onNavigateToTab(item.tab);
+              }}
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.8 : 1,
+                marginVertical: 4,
+                marginHorizontal: 2,
+              })}
+            >
+              <View
+                style={{
+                  paddingHorizontal: 24,
+                  paddingVertical: 14,
+                  borderRadius: 999,
+                  backgroundColor: isActive ? green[700] : "transparent",
                 }}
-                className="px-6 py-3.5"
-                style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
               >
                 <Text
-                  className={isActive ? "font-semibold" : "font-medium"}
+                  className={isActive ? "font-medium" : "font-medium"}
                   style={{
                     fontSize: 15,
                     lineHeight: 20,
-                    color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.5)",
+                    color: "#FFFFFF",
                   }}
                 >
                   {item.label}
                 </Text>
-              </Pressable>
-
-              {!isLast && <View className="w-px my-3 bg-white/25" />}
-            </React.Fragment>
+              </View>
+            </Pressable>
           );
         })}
       </View>

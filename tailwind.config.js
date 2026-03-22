@@ -1,18 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 
-const customGreen = {
-  50:  '#F3FCF6',
-  100: '#E2F8EA',
-  200: '#C3EFD3',
-  300: '#94E1B0',
-  400: '#5EC986',
-  500: '#37AE63',
-  600: '#298E4E',
-  700: '#237040',
-  800: '#205A36',
-  900: '#1D492D',
-  950: '#0B2816',
-};
+// Single source of truth — also used by src/theme.ts for inline styles
+const customGreen = require('./src/theme').green;
 
 const palettes = {
   primary: customGreen,
